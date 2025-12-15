@@ -1,26 +1,41 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import LoginPage from "./pages/Auth/LoginPage";
-import RegisterPage from "./pages/Auth/RegisterPage";
-import LandingPage from "./pages/Landing/LandingPage";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CartProvider } from "@/context/CartContext";
+import Index from "./pages/Index";
+import ShopPage from "./pages/ShopPage";
+import VirtualTryOnPage from "./pages/VirtualTryOnPage";
+import AboutPage from "./pages/AboutPage";
+import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import NotFound from "./pages/NotFound";
 
-export default function App() {
-  return (
-    <BrowserRouter>
-      <header className="max-w-6xl mx-auto w-full px-6 py-6 flex items-center justify-between">
-        <Link to="/" className="text-2xl font-bold tracking-tight">T-Shirt Studio</Link>
-        <nav className="flex gap-2">
-          <Link to="/auth/login" className="px-4 py-1.5 rounded-full border text-sm font-medium">Login</Link>
-          <Link to="/auth/register" className="px-4 py-1.5 rounded-full border text-sm font-medium">Sign up</Link>
-        </nav>
-      </header>
+const queryClient = new QueryClient();
 
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/auth/login" element={<LoginPage />} />
-          <Route path="/auth/register" element={<RegisterPage />} />
-        </Routes>
-      </main>
-    </BrowserRouter>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <CartProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/shop" element={<ShopPage />} />
+            <Route path="/virtual-try-on" element={<VirtualTryOnPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </CartProvider>
+  </QueryClientProvider>
+);
+
+export default App;
