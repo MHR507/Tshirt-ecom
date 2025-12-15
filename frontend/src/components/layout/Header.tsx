@@ -1,10 +1,13 @@
-import { Link } from 'react-router-dom';
-import { ShoppingBag, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingBag, Menu, X, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 
 const Header = () => {
+  const navigate = useNavigate();
+  const { isLoggedIn, logout, user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
 
@@ -14,6 +17,17 @@ const Header = () => {
     { name: 'Virtual Try-On', href: '/virtual-try-on' },
     { name: 'About', href: '/about' },
   ];
+
+  const handleLogout = () => {
+    logout();
+    setMobileMenuOpen(false);
+    navigate('/');
+  };
+
+  const handleAuthClick = (mode: 'login' | 'register') => {
+    navigate(`/auth?mode=${mode}`);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -36,7 +50,7 @@ const Header = () => {
           ))}
         </div>
 
-        {/* Cart & Mobile Menu */}
+        {/* Cart, Auth & Mobile Menu */}
         <div className="flex items-center gap-4">
           <Link to="/cart" className="relative">
             <Button variant="ghost" size="icon" className="relative">
@@ -48,6 +62,34 @@ const Header = () => {
               )}
             </Button>
           </Link>
+
+          {/* Desktop Auth Buttons */}
+          <div className="hidden md:flex items-center gap-2">
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border hover:bg-foreground/5 transition-smooth"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => handleAuthClick('login')}
+                  className="px-4 py-2 text-sm font-medium rounded-lg border border-border hover:bg-foreground/5 transition-smooth"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => handleAuthClick('register')}
+                  className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:shadow-lg transition-smooth"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
+          </div>
 
           <Button
             variant="ghost"
@@ -74,6 +116,34 @@ const Header = () => {
                 {link.name}
               </Link>
             ))}
+
+            {/* Mobile Auth Buttons */}
+            <div className="border-t border-border pt-4 mt-4 space-y-2">
+              {isLoggedIn ? (
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-smooth"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleAuthClick('login')}
+                    className="w-full px-4 py-3 text-sm font-medium rounded-lg border border-border hover:bg-foreground/5 transition-smooth"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => handleAuthClick('register')}
+                    className="w-full px-4 py-3 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:shadow-lg transition-smooth"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
