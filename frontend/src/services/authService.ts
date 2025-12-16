@@ -1,73 +1,84 @@
-export type AuthPayload = {
-  name?: string;
-  email: string;
-  password: string;
-  role: "designer" | "customer";
-};
+import { useAuth } from "@/context/AuthContext";
 
-async function handleResp(res: Response) {
-  const text = await res.text();
-  try {
-    const json = JSON.parse(text);
-    if (!res.ok) throw new Error(json?.message || res.statusText || "Request failed");
-    return json;
-  } catch {
-    if (!res.ok) throw new Error(text || res.statusText);
-    return text;
-  }
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
+export type LoginPayload = { email: string; password: string; role?: string };
+export type RegisterPayload = { name?: string; email: string; password: string; role?: "customer" | "designer" | "admin" };
+export type AuthUser = { id: string; email: string; role: string; full_name?: string };
+
+function parseJsonSafe(text: string) {
+  try { return JSON.parse(text); } catch { return text; }
 }
 
-/**
- * Attempts real backend auth first. If backend is unreachable or returns error,
- * falls back to a dev-only mock account:
- *   email: admin@admin.com
- *   password: 12345
- *
- * The mock returns a token stored in localStorage and minimal user info.
- * Do NOT rely on this for production.
- */
-export async function login(payload: { email: string; password: string; role: "designer" | "customer" }) {
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      // try to read server error and fall through to mock
-      await handleResp(res);
-    }
-    const data = await res.json();
-    if (data?.token) localStorage.setItem("auth_token", data.token);
-    return data;
-  } catch {
-    // Fallback mock for local development/testing only
-    if (payload.email === "admin@admin.com" && payload.password === "12345") {
-      const mock = {
-        token: "dev-mock-token",
-        user: { name: "Admin", email: payload.email, role: payload.role },
-      };
-      localStorage.setItem("auth_token", mock.token);
-      return mock;
-    }
-    throw new Error("Authentication failed (no backend). Use admin@admin.com / 12345 for local testing.");
-  }
+export async function login(payload: LoginPayload) {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: payload.email, password: payload.password })
+  });
+  const txt = await res.text();
+  const json = parseJsonSafe(txt);
+  if (!res.ok) throw new Error(json?.error?.msg || json?.message || txt || "Login failed");
+  
+  const token = json?.access_token || json?.accessToken || json?.token;
+  if (!token) throw new Error("No token in response");
+  
+  localStorage.setItem("auth_token", token);
+  // Store user info from response or metadata
+  const user: AuthUser = {
+    id: json?.user?.id || "",
+    email: payload.email,
+    role: payload.role || "customer",
+    full_name: json?.user?.user_metadata?.full_name,
+  };
+  localStorage.setItem("auth_user", JSON.stringify(user));
+  
+  return { token, user, raw: json };
 }
 
-export async function register(payload: AuthPayload) {
-  try {
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    return await handleResp(res);
-  } catch {
-    // simple mock success for development
-    return { ok: true, message: "Mock account created (dev only)." };
-  }
+export async function register(payload: RegisterPayload) {
+  const res = await fetch(`${API_BASE}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const txt = await res.text();
+  const json = parseJsonSafe(txt);
+  if (!res.ok) throw new Error(json?.error || json?.message || txt || "Registration failed");
+  
+  // After registration, auto-login
+  await login({ email: payload.email, password: payload.password, role: payload.role });
+  
+  return json;
+}
+
+export function getToken() {
+  return localStorage.getItem("auth_token");
+}
+
+export function getUser(): AuthUser | null {
+  const user = localStorage.getItem("auth_user");
+  return user ? JSON.parse(user) : null;
+}
+
+export function getUserRole(): string | null {
+  return getUser()?.role || null;
+}
+
+export function setToken(token: string | null) {
+  if (token) localStorage.setItem("auth_token", token);
+  else localStorage.removeItem("auth_token");
 }
 
 export function logout() {
   localStorage.removeItem("auth_token");
+  localStorage.removeItem("auth_user");
+}
+
+export function authFetch(input: RequestInfo, init: RequestInit = {}) {
+  const headers = new Headers(init.headers || {});
+  const token = getToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  return fetch(input, { ...init, headers });
 }

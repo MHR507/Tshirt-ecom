@@ -14,7 +14,10 @@ import AboutPage from "./pages/AboutPage";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import AuthPage from "./pages/Auth/AuthPage";
 import NotFound from "./pages/NotFound";
+import AdminProductsPage from "./pages/Admin/AdminProductsPage";
+import DesignerProductsPage from "./pages/Designer/DesignerProductsPage";
 
 // Auth pages
 import LoginPage from "./pages/Auth/LoginPage";
