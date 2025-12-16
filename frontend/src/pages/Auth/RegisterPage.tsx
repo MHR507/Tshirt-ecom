@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { register } from "../../services/authService";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
-type Props = { onSwitch?: () => void };
-
-export default function RegisterPage({ onSwitch }: Props) {
+export default function RegisterPage() {
+  const navigate = useNavigate();
+  const { register } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +20,13 @@ export default function RegisterPage({ onSwitch }: Props) {
 
     try {
       setLoading(true);
-      await register({ name, email, password, role });
+      await register(name, email, password, role);
+      // Navigate based on role
+      if (role === "designer") {
+        navigate("/designer");
+      } else {
+        navigate("/");
+      }
     } catch (err: any) {
       setError(err?.message || "Registration failed.");
     } finally {
@@ -28,82 +35,115 @@ export default function RegisterPage({ onSwitch }: Props) {
   };
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight">Create account</h2>
-        <p className="text-sm text-black/60">
-          Start designing or shopping today
-        </p>
-      </header>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl">
+        <div className="space-y-8">
+          <header className="space-y-1">
+            <h2 className="text-2xl font-bold tracking-tight">Create account</h2>
+            <p className="text-sm text-black/60">
+              Start designing or shopping today
+            </p>
+          </header>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {[{
-          value: name,
-          setter: setName,
-          placeholder: "Full name",
-        },{
-          value: email,
-          setter: setEmail,
-          placeholder: "Email",
-          type: "email",
-        },{
-          value: password,
-          setter: setPassword,
-          placeholder: "Password",
-          type: "password",
-        }].map((f, i) => (
-          <input
-            key={i}
-            type={f.type || "text"}
-            placeholder={f.placeholder}
-            value={f.value}
-            onChange={e => f.setter(e.target.value)}
-            className="w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm shadow-sm
-                       focus:outline-none focus:ring-2 focus:ring-black/80"
-          />
-        ))}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Name */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Full Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="John Doe"
+                className="w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm shadow-sm
+                           focus:outline-none focus:ring-2 focus:ring-black/80"
+              />
+            </div>
 
-        {/* Role */}
-        <div className="flex gap-2">
-          {["customer", "designer"].map(r => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => setRole(r as any)}
-              className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all
-                ${
-                  role === r
-                    ? "bg-black text-white shadow-md"
-                    : "border border-black/20 hover:bg-black hover:text-white"
-                }`}
-            >
-              {r.charAt(0).toUpperCase() + r.slice(1)}
-            </button>
-          ))}
+            {/* Email */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="john@example.com"
+                className="w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm shadow-sm
+                           focus:outline-none focus:ring-2 focus:ring-black/80"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm shadow-sm
+                           focus:outline-none focus:ring-2 focus:ring-black/80"
+              />
+            </div>
+
+            {/* Role */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">I want to:</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRole("customer")}
+                  className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold transition-all
+                    ${role === "customer"
+                      ? "bg-black text-white shadow-md"
+                      : "border border-black/20 hover:bg-black hover:text-white"
+                    }`}
+                >
+                  🛒 Shop T-Shirts
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("designer")}
+                  className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold transition-all
+                    ${role === "designer"
+                      ? "bg-black text-white shadow-md"
+                      : "border border-black/20 hover:bg-black hover:text-white"
+                    }`}
+                >
+                  🎨 Sell Designs
+                </button>
+              </div>
+            </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 rounded-xl bg-black py-2.5 text-sm font-semibold text-white
+                           shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-60"
+              >
+                {loading ? "Creating…" : "Create account"}
+              </button>
+
+              <Link
+                to="/auth/login"
+                className="flex-1 rounded-xl border border-black/20 py-2.5 text-sm font-semibold text-center
+                           transition hover:bg-black hover:text-white"
+              >
+                Sign in
+              </Link>
+            </div>
+          </form>
+
+          {/* Back to home */}
+          <div className="text-center">
+            <Link to="/" className="text-sm text-black/60 hover:text-black transition">
+              ← Back to Store
+            </Link>
+          </div>
         </div>
-
-        {error && <p className="text-sm text-red-600">{error}</p>}
-
-        <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 rounded-xl bg-black py-2.5 text-sm font-semibold text-white
-                       shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-60"
-          >
-            {loading ? "Creating…" : "Create account"}
-          </button>
-
-          <button
-            type="button"
-            onClick={onSwitch}
-            className="flex-1 rounded-xl border border-black/20 py-2.5 text-sm font-semibold
-                       transition hover:bg-black hover:text-white"
-          >
-            Sign in
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }

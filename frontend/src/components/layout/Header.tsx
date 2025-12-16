@@ -1,12 +1,22 @@
-import { Link } from 'react-router-dom';
-import { ShoppingBag, Menu, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingBag, Menu, X, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
+  const { user, isAuthenticated, logout, isAdmin, isDesigner } = useAuth();
+  const navigate = useNavigate();
 
   const navLinks = [
     { name: 'Shop All', href: '/shop' },
@@ -14,6 +24,11 @@ const Header = () => {
     { name: 'Virtual Try-On', href: '/virtual-try-on' },
     { name: 'About', href: '/about' },
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -36,8 +51,9 @@ const Header = () => {
           ))}
         </div>
 
-        {/* Cart & Mobile Menu */}
-        <div className="flex items-center gap-4">
+        {/* Cart, Auth & Mobile Menu */}
+        <div className="flex items-center gap-2">
+          {/* Cart */}
           <Link to="/cart" className="relative">
             <Button variant="ghost" size="icon" className="relative">
               <ShoppingBag className="h-5 w-5" />
@@ -49,6 +65,49 @@ const Header = () => {
             </Button>
           </Link>
 
+          {/* Auth */}
+          {isAuthenticated && user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="hidden md:flex">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium">{user.name}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                  <p className="text-xs text-primary capitalize">{user.role}</p>
+                </div>
+                <DropdownMenuSeparator />
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate('/admin')}>
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Admin Dashboard
+                  </DropdownMenuItem>
+                )}
+                {isDesigner && !isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate('/designer')}>
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Designer Dashboard
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/auth/login" className="hidden md:block">
+              <Button variant="outline" size="sm">
+                Sign In
+              </Button>
+            </Link>
+          )}
+
+          {/* Mobile Menu Toggle */}
           <Button
             variant="ghost"
             size="icon"
@@ -74,6 +133,52 @@ const Header = () => {
                 {link.name}
               </Link>
             ))}
+
+            <div className="pt-4 border-t border-border">
+              {isAuthenticated && user ? (
+                <>
+                  <div className="py-2">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                  </div>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="block py-2 text-primary"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  {isDesigner && !isAdmin && (
+                    <Link
+                      to="/designer"
+                      className="block py-2 text-primary"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Designer Dashboard
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block py-2 text-red-500"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/auth/login"
+                  className="block py-2 text-primary font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}
