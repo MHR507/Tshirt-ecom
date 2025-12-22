@@ -111,7 +111,7 @@ export function DesignerSidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-30 lg:hidden"
+        className="fixed top-4 right-4 z-30 lg:hidden"
         onClick={() => setCollapsed(false)}
       >
         <Menu className="h-5 w-5" />
