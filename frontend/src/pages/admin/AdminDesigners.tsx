@@ -204,10 +204,7 @@ export default function AdminDesigners() {
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" className="flex-1">View Profile</Button>
-                  <Button size="sm" className="flex-1">View Designs</Button>
-                </div>
+            
               </CardContent>
             </Card>
           ))}
