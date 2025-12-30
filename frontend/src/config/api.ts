@@ -4,14 +4,13 @@
  * This file contains the single source of truth for the API base URL.
  * All services should import API_BASE from this file.
  * 
- * In development: Set VITE_API_URL in .env file (optional)
+ * In development: Set VITE_API_URL in .env file
  * In production: Set VITE_API_URL in environment variables
  * 
- * If not set, defaults to empty string (relative paths)
- * which works with Vite proxy in development and reverse proxy in production.
+ * If not set, defaults to production backend URL.
  */
 
-export const API_BASE = import.meta.env.VITE_API_URL || "";
+export const API_BASE = import.meta.env.VITE_API_URL || "https://valorfit.onrender.com";
 
 /**
  * Helper to construct full API URLs
