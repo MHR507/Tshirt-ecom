@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import apiService from '@/services/apiService';
+import { API_BASE } from '@/config/api';
 
 interface Design {
   id: string;
@@ -78,7 +79,7 @@ export default function AdminDesigns() {
     try {
       // Extract numeric ID from "DES-XXX" format
       const numericId = designId.replace('DES-', '');
-      const response = await fetch(`/api/designs/${numericId}/approve`, {
+      const response = await fetch(`${API_BASE}/api/designs/${numericId}/approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +100,7 @@ export default function AdminDesigns() {
     try {
       // Extract numeric ID from "DES-XXX" format
       const numericId = designId.replace('DES-', '');
-      const response = await fetch(`/api/designs/${numericId}/reject`, {
+      const response = await fetch(`${API_BASE}/api/designs/${numericId}/reject`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

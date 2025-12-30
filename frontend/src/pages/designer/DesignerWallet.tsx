@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import apiService from '@/services/apiService';
+import { API_BASE } from '@/config/api';
 
 interface Transaction {
   id: string;
@@ -46,7 +47,7 @@ export default function DesignerWallet() {
         // Fetch transactions - using the designer transactions endpoint
         try {
           const token = localStorage.getItem('token');
-          const txResponse = await fetch('/api/designer/transactions', {
+          const txResponse = await fetch(`${API_BASE}/api/designer/transactions`, {
             headers: {
               'Content-Type': 'application/json',
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -95,7 +96,7 @@ export default function DesignerWallet() {
     try {
       setIsWithdrawing(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/designer/withdraw', {
+      const response = await fetch(`${API_BASE}/api/designer/withdraw`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -298,8 +299,8 @@ export default function DesignerWallet() {
                 <div key={transaction.id} className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
                   <div className="flex items-center gap-4">
                     <div className={`p-2 rounded-full ${transaction.type === 'earning' ? 'bg-green-500/20' :
-                        transaction.type === 'withdrawal' ? 'bg-red-500/20' :
-                          'bg-yellow-500/20'
+                      transaction.type === 'withdrawal' ? 'bg-red-500/20' :
+                        'bg-yellow-500/20'
                       }`}>
                       {getTransactionIcon(transaction.type)}
                     </div>
@@ -313,8 +314,8 @@ export default function DesignerWallet() {
                       {transaction.type === 'withdrawal' ? '-' : '+'}${Math.abs(transaction.amount).toFixed(2)}
                     </p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${transaction.status === 'completed' ? 'bg-green-500/20 text-green-500' :
-                        transaction.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
-                          'bg-red-500/20 text-red-500'
+                      transaction.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
+                        'bg-red-500/20 text-red-500'
                       }`}>
                       {transaction.status}
                     </span>

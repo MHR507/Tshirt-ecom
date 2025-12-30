@@ -1,6 +1,7 @@
 import { toast } from '@/hooks/use-toast';
+import { API_BASE } from '@/config/api';
 
-const API_URL = '/api';
+const API_URL = `${API_BASE}/api`;
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');

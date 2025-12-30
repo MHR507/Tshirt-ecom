@@ -1,4 +1,6 @@
 // All frontend calls go to your backend; DO NOT include API keys here.
+import { API_BASE } from '@/config/api';
+
 export type TryOnPayload = {
   model_image: string;
   garment_image: string;
@@ -19,7 +21,7 @@ export type TryOnPayload = {
  */
 export async function submitTryOn(payload: TryOnPayload) {
   try {
-    const res = await fetch("/api/try-on", {
+    const res = await fetch(`${API_BASE}/api/try-on`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model_name: "tryon-v1.6", inputs: payload }),
