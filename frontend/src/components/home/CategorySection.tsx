@@ -6,14 +6,14 @@ const CategorySection = () => {
     {
       name: 'Classic Collection',
       description: 'Timeless essentials for everyday wear',
-      image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&h=600&fit=crop',
+      image: '/assets/white-compression-shirt.jpeg',
       href: '/shop?category=normal',
       count: '24 Styles',
     },
     {
       name: 'Designer Series',
       description: 'Limited editions by world-class artists',
-      image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=600&fit=crop',
+      image: '/assets/sweat.jpeg',
       href: '/shop?category=designer',
       count: '12 Exclusives',
     },

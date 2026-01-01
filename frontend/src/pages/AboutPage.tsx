@@ -94,7 +94,7 @@ const AboutPage = () => {
               <div className="relative">
                 <div className="aspect-[4/5] bg-card overflow-hidden">
                   <img
-                    src="https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&h=1000&fit=crop"
+                    src="/assets/hero/valorfit.png"
                     alt="Our workshop"
                     className="w-full h-full object-cover"
                   />

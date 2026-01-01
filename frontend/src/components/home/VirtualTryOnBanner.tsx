@@ -67,16 +67,10 @@ const VirtualTryOnBanner = () => {
               <div className="absolute inset-0 bg-gradient-card rounded-3xl border border-border p-4">
                 <div className="w-full h-full bg-secondary rounded-2xl overflow-hidden relative">
                   <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop"
+                    src="/assets/hero/valorfit3.jpg"
                     alt="Virtual Try-On Demo"
                     className="w-full h-full object-cover"
                   />
-                  {/* Overlay Compression shirt indicator */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-background/80 backdrop-blur-sm px-6 py-3 border border-primary/50">
-                      <span className="text-primary font-display text-lg">MIDNIGHT ESSENCE</span>
-                    </div>
-                  </div>
                 </div>
               </div>
 

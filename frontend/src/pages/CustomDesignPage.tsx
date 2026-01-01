@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-    Upload, Type, Circle, Square, Star, Heart, Trash2,
-    RotateCw, ZoomIn, ZoomOut, Save, ShoppingCart,
-    ChevronLeft, ChevronRight, Move, Loader2, Image as ImageIcon
+    Upload, Type, Trash2, RotateCw, ZoomIn, ZoomOut, Save, ShoppingCart,
+    Move, Loader2, Image as ImageIcon, GripVertical
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -18,7 +17,7 @@ import { useCart } from '@/context/CartContext';
 
 interface DesignElement {
     id: string;
-    type: 'image' | 'text' | 'shape';
+    type: 'image' | 'text';
     content: string;
     x: number;
     y: number;
@@ -31,32 +30,25 @@ interface DesignElement {
 
 type ShirtStyle = 'sleeveless' | 'half-sleeve' | 'full-sleeve';
 
-const PRESET_ICONS = [
-    { id: 'star', icon: Star, name: 'Star' },
-    { id: 'heart', icon: Heart, name: 'Heart' },
-    { id: 'circle', icon: Circle, name: 'Circle' },
-    { id: 'square', icon: Square, name: 'Square' },
-];
-
 const SHIRT_STYLES: { id: ShirtStyle; name: string }[] = [
     { id: 'sleeveless', name: 'Sleeveless' },
     { id: 'half-sleeve', name: 'Half Sleeve' },
     { id: 'full-sleeve', name: 'Full Sleeve' },
 ];
 
-// Shirt image paths - PNG/JPG images for each style and side
+// Shirt image paths - PNG images for each style and side
 const SHIRT_IMAGES: Record<ShirtStyle, { front: string; back: string }> = {
     'sleeveless': {
-        front: '/assets/shirts/sleeveless-front.jpg',
-        back: '/assets/shirts/sleeveless-back.jpg',
+        front: '/assets/shirts/sleeveless-front.png',
+        back: '/assets/shirts/sleeveless-back.png',
     },
     'half-sleeve': {
-        front: '/assets/shirts/half-sleeve-front.jpg',
-        back: '/assets/shirts/half-sleeve-back.jpg',
+        front: '/assets/shirts/half-sleeve-front.png',
+        back: '/assets/shirts/half-sleeve-back.png',
     },
     'full-sleeve': {
-        front: '/assets/shirts/full-sleeve-front.jpg',
-        back: '/assets/shirts/full-sleeve-back.jpg',
+        front: '/assets/shirts/full-sleeve-front.png',
+        back: '/assets/shirts/full-sleeve-back.png',
     },
 };
 
@@ -72,6 +64,7 @@ export default function CustomDesignPage() {
     const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
     const [elements, setElements] = useState<DesignElement[]>([]);
     const [selectedElement, setSelectedElement] = useState<string | null>(null);
+    const [movingElement, setMovingElement] = useState<string | null>(null); // Element in move mode
     const [designName, setDesignName] = useState('My Custom Design');
     const [saveDialogOpen, setSaveDialogOpen] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -100,16 +93,17 @@ export default function CustomDesignPage() {
             id: Date.now().toString(),
             type,
             content,
-            x: 60,
-            y: 80,
-            width: type === 'text' ? 100 : 50,
-            height: type === 'text' ? 30 : 50,
+            x: 80,
+            y: 120,
+            width: type === 'text' ? 120 : 80,
+            height: type === 'text' ? 40 : 80,
             rotation: 0,
             color,
             side: activeSide,
         };
         setElements([...elements, newElement]);
         setSelectedElement(newElement.id);
+        setMovingElement(null);
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,14 +128,11 @@ export default function CustomDesignPage() {
         if (text) addElement('text', text, '#000000');
     };
 
-    const addShapeElement = (shapeType: string) => {
-        addElement('shape', shapeType, '#ff6b6b');
-    };
-
     const deleteSelectedElement = () => {
         if (!selectedElement) return;
         setElements(elements.filter(el => el.id !== selectedElement));
         setSelectedElement(null);
+        setMovingElement(null);
     };
 
     const rotateSelectedElement = () => {
@@ -156,16 +147,43 @@ export default function CustomDesignPage() {
         setElements(elements.map(el =>
             el.id === selectedElement ? {
                 ...el,
-                width: Math.max(20, el.width * scale),
-                height: Math.max(20, el.height * scale)
+                width: Math.max(30, el.width * scale),
+                height: Math.max(30, el.height * scale)
             } : el
         ));
     };
 
+    // First click: select element and show controls
+    // Second click or click on move button: enable movement
+    const handleElementClick = (e: React.MouseEvent, elementId: string, side: 'front' | 'back') => {
+        e.stopPropagation();
+        setActiveSide(side);
+
+        if (selectedElement === elementId) {
+            // Second click - enable moving mode
+            setMovingElement(elementId);
+        } else {
+            // First click - just select
+            setSelectedElement(elementId);
+            setMovingElement(null);
+        }
+    };
+
+    const enableMoveMode = () => {
+        if (selectedElement) {
+            setMovingElement(selectedElement);
+        }
+    };
+
     const handleMouseDown = (e: React.MouseEvent, elementId: string, side: 'front' | 'back') => {
         e.stopPropagation();
-        setSelectedElement(elementId);
-        setActiveSide(side);
+
+        // Only allow dragging if element is in move mode
+        if (movingElement !== elementId) {
+            handleElementClick(e, elementId, side);
+            return;
+        }
+
         setDragging(true);
         const element = elements.find(el => el.id === elementId);
         const canvasRef = side === 'front' ? frontCanvasRef : backCanvasRef;
@@ -179,23 +197,29 @@ export default function CustomDesignPage() {
     };
 
     const handleMouseMove = (e: React.MouseEvent, side: 'front' | 'back') => {
-        if (!dragging || !selectedElement) return;
+        if (!dragging || !movingElement) return;
         const canvasRef = side === 'front' ? frontCanvasRef : backCanvasRef;
         if (!canvasRef.current) return;
 
-        const element = elements.find(el => el.id === selectedElement);
+        const element = elements.find(el => el.id === movingElement);
         if (!element || element.side !== side) return;
 
         const rect = canvasRef.current.getBoundingClientRect();
-        const x = Math.max(0, Math.min(rect.width - 50, e.clientX - rect.left - dragOffset.x));
-        const y = Math.max(0, Math.min(rect.height - 50, e.clientY - rect.top - dragOffset.y));
+        const x = Math.max(0, Math.min(rect.width - element.width, e.clientX - rect.left - dragOffset.x));
+        const y = Math.max(0, Math.min(rect.height - element.height, e.clientY - rect.top - dragOffset.y));
         setElements(elements.map(el =>
-            el.id === selectedElement ? { ...el, x, y } : el
+            el.id === movingElement ? { ...el, x, y } : el
         ));
     };
 
     const handleMouseUp = () => {
         setDragging(false);
+    };
+
+    const handleCanvasClick = (side: 'front' | 'back') => {
+        setActiveSide(side);
+        setSelectedElement(null);
+        setMovingElement(null);
     };
 
     const handleSaveDesign = async () => {
@@ -257,6 +281,8 @@ export default function CustomDesignPage() {
 
     const renderElement = (element: DesignElement) => {
         const isSelected = selectedElement === element.id;
+        const isMoving = movingElement === element.id;
+
         const baseStyle: React.CSSProperties = {
             position: 'absolute',
             left: element.x,
@@ -264,7 +290,7 @@ export default function CustomDesignPage() {
             width: element.width,
             height: element.height,
             transform: `rotate(${element.rotation}deg)`,
-            cursor: 'move',
+            cursor: isMoving ? 'grab' : 'pointer',
             border: isSelected ? '2px solid #3b82f6' : '2px solid transparent',
             borderRadius: '4px',
             display: 'flex',
@@ -272,46 +298,88 @@ export default function CustomDesignPage() {
             justifyContent: 'center',
             userSelect: 'none',
             zIndex: isSelected ? 10 : 1,
+            boxShadow: isMoving ? '0 4px 12px rgba(59, 130, 246, 0.4)' : 'none',
         };
 
-        if (element.type === 'image') {
-            return (
-                <div
-                    key={element.id}
-                    style={baseStyle}
-                    onMouseDown={(e) => handleMouseDown(e, element.id, element.side)}
-                >
-                    <img src={element.content} alt="" className="w-full h-full object-contain" />
-                </div>
-            );
-        }
+        // Inline controls when selected but not moving
+        const showInlineControls = isSelected && !isMoving;
 
-        if (element.type === 'text') {
-            return (
-                <div
-                    key={element.id}
-                    style={{ ...baseStyle, color: element.color, fontWeight: 'bold', fontSize: '14px' }}
-                    onMouseDown={(e) => handleMouseDown(e, element.id, element.side)}
-                >
-                    {element.content}
-                </div>
-            );
-        }
+        return (
+            <div
+                key={element.id}
+                style={baseStyle}
+                onMouseDown={(e) => handleMouseDown(e, element.id, element.side)}
+            >
+                {element.type === 'image' ? (
+                    <img src={element.content} alt="" className="w-full h-full object-contain" draggable={false} />
+                ) : (
+                    <span style={{ color: element.color, fontWeight: 'bold', fontSize: '16px' }}>
+                        {element.content}
+                    </span>
+                )}
 
-        if (element.type === 'shape') {
-            const ShapeIcon = PRESET_ICONS.find(i => i.id === element.content)?.icon || Circle;
-            return (
-                <div
-                    key={element.id}
-                    style={baseStyle}
-                    onMouseDown={(e) => handleMouseDown(e, element.id, element.side)}
-                >
-                    <ShapeIcon className="w-full h-full" style={{ color: element.color }} />
-                </div>
-            );
-        }
+                {/* Inline controls overlay */}
+                {showInlineControls && (
+                    <div
+                        className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex gap-1 bg-background border rounded-lg shadow-lg p-1 z-20"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={(e) => { e.stopPropagation(); enableMoveMode(); }}
+                            title="Move"
+                        >
+                            <GripVertical className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={(e) => { e.stopPropagation(); rotateSelectedElement(); }}
+                            title="Rotate"
+                        >
+                            <RotateCw className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={(e) => { e.stopPropagation(); resizeSelectedElement(1.2); }}
+                            title="Larger"
+                        >
+                            <ZoomIn className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={(e) => { e.stopPropagation(); resizeSelectedElement(0.8); }}
+                            title="Smaller"
+                        >
+                            <ZoomOut className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={(e) => { e.stopPropagation(); deleteSelectedElement(); }}
+                            title="Delete"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
 
-        return null;
+                {/* Moving indicator */}
+                {isMoving && (
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                        Drag to move
+                    </div>
+                )}
+            </div>
+        );
     };
 
     const renderCanvas = (side: 'front' | 'back') => {
@@ -332,43 +400,40 @@ export default function CustomDesignPage() {
                         : 'ring-1 ring-border shadow hover:ring-primary/50'
                         }`}
                     style={{
-                        width: '240px',
-                        height: '320px',
-                        background: '#f5f5f5',
+                        width: '320px',
+                        height: '420px',
+                        background: '#f8f8f8',
                     }}
                     onMouseMove={(e) => handleMouseMove(e, side)}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
-                    onClick={() => {
-                        setActiveSide(side);
-                        setSelectedElement(null);
-                    }}
+                    onClick={() => handleCanvasClick(side)}
                 >
                     {/* Shirt PNG Image */}
                     <img
                         src={shirtImage}
                         alt={`${shirtStyle} ${side}`}
                         className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                        draggable={false}
                         onError={(e) => {
-                            // Fallback if image doesn't exist
                             (e.target as HTMLImageElement).style.display = 'none';
                         }}
                     />
 
-                    {/* Design Area Overlay - shows where designs can be placed */}
+                    {/* Design Area Overlay */}
                     <div
                         className="absolute pointer-events-none"
                         style={{
-                            left: '60px',
-                            top: '80px',
-                            width: '120px',
-                            height: '150px',
+                            left: '80px',
+                            top: '100px',
+                            width: '160px',
+                            height: '200px',
                         }}
                     >
                         {sideElements.length === 0 && isActive && (
-                            <div className="w-full h-full border-2 border-dashed border-primary/30 rounded flex items-center justify-center bg-white/10">
-                                <span className="text-[10px] text-primary/50 text-center px-2">
-                                    Add your<br />design here
+                            <div className="w-full h-full border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-white/20">
+                                <span className="text-xs text-primary/50 text-center px-2">
+                                    Add your design here
                                 </span>
                             </div>
                         )}
@@ -458,50 +523,18 @@ export default function CustomDesignPage() {
                                 </CardContent>
                             </Card>
 
-                            {/* Shapes */}
-                            <Card className="bg-card border-border">
+                            {/* Instructions */}
+                            <Card className="bg-muted/50 border-muted">
                                 <CardContent className="p-4">
-                                    <h3 className="font-medium mb-3">Shapes</h3>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {PRESET_ICONS.map(({ id, icon: Icon, name }) => (
-                                            <Button
-                                                key={id}
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() => addShapeElement(id)}
-                                                title={name}
-                                            >
-                                                <Icon className="h-5 w-5" />
-                                            </Button>
-                                        ))}
-                                    </div>
+                                    <h3 className="font-medium mb-2 text-sm">How to Use</h3>
+                                    <ul className="text-xs text-muted-foreground space-y-1">
+                                        <li>• Click element to select & show controls</li>
+                                        <li>• Click move icon or element again to drag</li>
+                                        <li>• Use controls to rotate, resize, or delete</li>
+                                        <li>• Click outside element to deselect</li>
+                                    </ul>
                                 </CardContent>
                             </Card>
-
-                            {/* Element Controls */}
-                            {selectedElement && (
-                                <Card className="bg-card border-border">
-                                    <CardContent className="p-4">
-                                        <h3 className="font-medium mb-3 flex items-center gap-2">
-                                            <Move className="h-4 w-4" /> Element Controls
-                                        </h3>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <Button variant="outline" size="sm" onClick={rotateSelectedElement}>
-                                                <RotateCw className="h-4 w-4 mr-1" /> Rotate
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={deleteSelectedElement}>
-                                                <Trash2 className="h-4 w-4 mr-1" /> Delete
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={() => resizeSelectedElement(1.2)}>
-                                                <ZoomIn className="h-4 w-4 mr-1" /> Larger
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={() => resizeSelectedElement(0.8)}>
-                                                <ZoomOut className="h-4 w-4 mr-1" /> Smaller
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
 
                             {/* Price Info */}
                             {baseProduct && (
@@ -517,7 +550,7 @@ export default function CustomDesignPage() {
                         {/* Right Panel - Canvas Area */}
                         <div className="space-y-6">
                             {/* Front and Back Side by Side */}
-                            <div className="flex justify-center gap-6 flex-wrap">
+                            <div className="flex justify-center gap-8 flex-wrap">
                                 {renderCanvas('front')}
                                 {renderCanvas('back')}
                             </div>

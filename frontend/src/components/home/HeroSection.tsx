@@ -72,7 +72,7 @@ const HeroSection = () => {
           <div className="relative hidden lg:block">
             <div className="relative z-10 animate-float">
               <img
-                src="/assets/hero/valorfit-hero.png"
+                src="/assets/hero/valorfit2.png"
                 alt="Premium Gym Compression Shirt"
                 className="w-full max-w-md mx-auto shadow-2xl rounded-lg"
               />

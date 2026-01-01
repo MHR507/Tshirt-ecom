@@ -152,7 +152,7 @@ export default function LandingPage() {
 					<div className="rounded-xl border border-black/10 p-4">
 						<div className="w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
 							<img
-								src="/assets/hero/hero-tee.jpg"
+								src="/assets/hero/valorfit2.png"
 								alt="Hero tee"
 								className="object-cover w-full h-full"
 							/>
