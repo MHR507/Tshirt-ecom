@@ -219,7 +219,7 @@ export default function MyCustomDesigns() {
                                         <h3 className="font-medium truncate">{design.name}</h3>
                                         <p className="text-xs text-muted-foreground">Created: {design.createdAt}</p>
                                         {baseProduct && (
-                                            <p className="text-lg font-bold text-primary mt-2">${baseProduct.price}</p>
+                                            <p className="text-lg font-bold text-primary mt-2">Rs. {baseProduct.price}</p>
                                         )}
                                     </CardContent>
                                 </Card>

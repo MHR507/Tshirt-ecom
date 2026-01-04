@@ -8,9 +8,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="space-y-4">
-            <h3 className="font-display text-2xl tracking-wider">
-              VALOR<span className="text-primary">FIT</span>
-            </h3>
+            <Link to="/" className="block">
+              <img
+                src="/assets/shirts/valorfit-transaparent-logo-white.png"
+                alt="ValorFit"
+                className="h-32 w-auto"
+              />
+            </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Premium gym and athletic apparel for those who push their limits.
               Crafted for performance, worn with pride.
@@ -39,7 +43,7 @@ const Footer = () => {
                 Designer Series
               </Link>
               <Link to="/virtual-try-on" className="block text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                Virtual Try-On
+                AR Preview
               </Link>
             </div>
           </div>

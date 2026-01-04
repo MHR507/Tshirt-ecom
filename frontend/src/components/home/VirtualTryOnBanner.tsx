@@ -21,13 +21,13 @@ const VirtualTryOnBanner = () => {
             </div>
 
             <h2 className="font-display text-5xl md:text-7xl">
-              VIRTUAL
+              AR
               <br />
-              <span className="text-gradient">TRY-ON</span>
+              <span className="text-gradient">PREVIEW</span>
             </h2>
 
             <p className="text-muted-foreground text-lg max-w-md leading-relaxed">
-              See how our tees look on you before buying using the Power of Augmented Reality.
+              See how our Compression Shirts look on you before buying using the Power of Augmented Reality.
               Upload your photo and experience the future of online shopping.
             </p>
 

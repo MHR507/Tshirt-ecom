@@ -8,7 +8,7 @@ import { ChevronDown, SlidersHorizontal, X, Loader2 } from 'lucide-react';
 import { Product } from '@/context/CartContext';
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'name';
-type CategoryFilter = 'normal' | 'designer';
+type CategoryFilter = 'all' | 'normal' | 'designer';
 
 const ShopPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,17 +17,17 @@ const ShopPage = () => {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 999999]);
 
   const categoryFromUrl = searchParams.get('category') as CategoryFilter | null;
-  const [category, setCategory] = useState<CategoryFilter>(categoryFromUrl || 'normal');
+  const [category, setCategory] = useState<CategoryFilter>(categoryFromUrl || 'all');
 
   const allSizes = ['S', 'M', 'L', 'XL', 'XXL'];
 
   // Sync category with URL changes (when navigating from navbar)
   useEffect(() => {
     const urlCategory = searchParams.get('category') as CategoryFilter | null;
-    setCategory(urlCategory || 'normal');
+    setCategory(urlCategory || 'all');
   }, [searchParams]);
 
   // Fetch products from Supabase
@@ -36,8 +36,11 @@ const ShopPage = () => {
       try {
         setLoading(true);
         const response = await apiService.getProducts();
-        // Show all products (out-of-stock items will be displayed with badges)
-        setProducts(response.products as Product[]);
+        // Filter out of stock items (quantity <= 0) and custom category (admin-only)
+        const availableProducts = (response.products as Product[]).filter(p =>
+          p.quantity > 0 && p.category !== 'custom'
+        );
+        setProducts(availableProducts);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -51,10 +54,12 @@ const ShopPage = () => {
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
-    // Category filter - always filter by category (no 'all' option)
-    result = result.filter(p => p.category === category);
+    // Category filter - filter by category unless 'all' is selected
+    if (category !== 'all') {
+      result = result.filter(p => p.category === category);
+    }
 
-    // Size filter
+    // Size filter  
     if (selectedSizes.length > 0) {
       result = result.filter(p =>
         selectedSizes.some(size => p.sizes?.includes(size))
@@ -81,13 +86,6 @@ const ShopPage = () => {
       default:
         result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
     }
-
-    // Secondary sort: push out-of-stock items to the end
-    result.sort((a, b) => {
-      const aOutOfStock = (a.quantity !== undefined && a.quantity <= 0) ? 1 : 0;
-      const bOutOfStock = (b.quantity !== undefined && b.quantity <= 0) ? 1 : 0;
-      return aOutOfStock - bOutOfStock;
-    });
 
     return result;
   }, [products, category, selectedSizes, priceRange, sortBy]);
@@ -124,12 +122,14 @@ const ShopPage = () => {
               Collection
             </span>
             <h1 className="font-display text-6xl md:text-8xl mt-4">
-              {category === 'designer' ? 'DESIGNER SERIES' : 'ALL PRODUCTS'}
+              {category === 'designer' ? 'DESIGNER SERIES' : category === 'normal' ? 'CLASSIC COLLECTION' : 'ALL PRODUCTS'}
             </h1>
             <p className="text-muted-foreground mt-4 max-w-lg">
               {category === 'designer'
                 ? 'Designs submitted by our community of designers.'
-                : ''}
+                : category === 'normal'
+                  ? 'Our classic compression shirt collection.'
+                  : 'Browse our complete collection of compression shirts.'}
             </p>
           </div>
         </section>
@@ -185,7 +185,7 @@ const ShopPage = () => {
                 <div>
                   <h4 className="font-display text-lg mb-4">CATEGORY</h4>
                   <div className="space-y-2">
-                    {(['normal', 'designer'] as const).map((cat) => (
+                    {(['all', 'normal', 'designer'] as const).map((cat) => (
                       <button
                         key={cat}
                         onClick={() => handleCategoryChange(cat)}
@@ -194,7 +194,7 @@ const ShopPage = () => {
                           : 'text-muted-foreground hover:text-foreground'
                           }`}
                       >
-                        {cat === 'normal' ? 'Classic Collection' : 'Designer Series'}
+                        {cat === 'all' ? 'All Products' : cat === 'normal' ? 'Classic Collection' : 'Designer Series'}
                       </button>
                     ))}
                   </div>

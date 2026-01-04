@@ -222,14 +222,15 @@ export default function AdminProductsPage() {
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Premium Cotton Tee"
+                  placeholder="Basic compression shirt."
                   required
+                  disabled={editingProduct?.category === 'custom'}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Price ($)</Label>
+                  <Label>Price (Rs.)</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -262,18 +263,21 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="designer">Designer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Hide category selector for custom products */}
+              {editingProduct?.category !== 'custom' && (
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="designer">Designer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label>Description</Label>
@@ -407,7 +411,7 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="p-4 capitalize">{product.category}</td>
-                    <td className="p-4">${product.price.toFixed(2)}</td>
+                    <td className="p-4">Rs. {product.price.toFixed(2)}</td>
                     <td className="p-4">
                       <span className={product.quantity <= 5 && product.quantity < INFINITE_STOCK_VALUE ? 'text-red-500 font-medium' : ''}>
                         {product.quantity >= INFINITE_STOCK_VALUE ? (
@@ -429,9 +433,12 @@ export default function AdminProductsPage() {
                         <Button variant="ghost" size="icon" onClick={() => openEditDialog(product)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDelete(product.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {/* Hide delete button for custom category products */}
+                        {product.category !== 'custom' && (
+                          <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDelete(product.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>

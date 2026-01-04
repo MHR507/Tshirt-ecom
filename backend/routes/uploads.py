@@ -41,7 +41,7 @@ def generate_presigned_get_url(bucket: str, key: str, expires: int = 3600) -> st
 
 def upload_to_r2(bucket: str, key: str, file_stream, content_type: str) -> str:
     """
-    Uploads file to R2 and returns a presigned GET URL.
+    Uploads file to R2 and returns a public or presigned GET URL.
     """
     try:
         file_stream.seek(0)
@@ -55,7 +55,9 @@ def upload_to_r2(bucket: str, key: str, file_stream, content_type: str) -> str:
         ContentType=content_type
     )
 
-    # ALWAYS return presigned URL (bucket is private)
+    # Use public URL if configured, otherwise fall back to presigned URL
+    if Config.R2_PUBLIC_URL:
+        return f"{Config.R2_PUBLIC_URL}/{key}"
     return generate_presigned_get_url(bucket, key)
 
 
@@ -126,15 +128,21 @@ def upload_design_image():
 @uploads_bp.route('/products/<filename>', methods=['GET'])
 def serve_product_image(filename):
     """
-    Redirect to a presigned URL (keeps bucket private).
+    Redirect to a public or presigned URL.
     """
     key = f"products/{filename}"
-    url = generate_presigned_get_url(Config.R2_BUCKET, key)
+    if Config.R2_PUBLIC_URL:
+        url = f"{Config.R2_PUBLIC_URL}/{key}"
+    else:
+        url = generate_presigned_get_url(Config.R2_BUCKET, key)
     return redirect(url, code=302)
 
 
 @uploads_bp.route('/designs/<filename>', methods=['GET'])
 def serve_design_image(filename):
     key = f"designs/{filename}"
-    url = generate_presigned_get_url(Config.R2_BUCKET, key)
+    if Config.R2_PUBLIC_URL:
+        url = f"{Config.R2_PUBLIC_URL}/{key}"
+    else:
+        url = generate_presigned_get_url(Config.R2_BUCKET, key)
     return redirect(url, code=302)

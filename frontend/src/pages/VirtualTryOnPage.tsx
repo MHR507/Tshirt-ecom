@@ -45,13 +45,15 @@ const VirtualTryOnPage = () => {
   const loadProducts = async () => {
     try {
       const response = await apiService.getProducts();
-      // Map backend product to TryOnProduct interface
-      const mappedProducts = (response.products || []).map((p: any) => ({
-        id: String(p.id),
-        title: p.name,
-        price: p.price,
-        image_url: p.image // Backend returns 'image', component uses 'image_url'
-      }));
+      // Map backend product to TryOnProduct interface, excluding custom category
+      const mappedProducts = (response.products || [])
+        .filter((p: any) => p.category !== 'custom')
+        .map((p: any) => ({
+          id: String(p.id),
+          title: p.name,
+          price: p.price,
+          image_url: p.image // Backend returns 'image', component uses 'image_url'
+        }));
 
       setProducts(mappedProducts);
       if (mappedProducts.length > 0) setSelectedProduct(mappedProducts[0]);
@@ -144,11 +146,10 @@ const VirtualTryOnPage = () => {
               </span>
             </div>
             <h1 className="font-display text-6xl md:text-8xl">
-              VIRTUAL<br />
-              <span className="text-gradient">TRY-ON</span>
+              AR Preview
             </h1>
-            <p className="text-muted-foreground mt-4 max-w-lg text-lg">
-              See how our tees look on you before buying. Upload a photo and experience the future of online shopping.
+            <p className="text-muted-foreground mt-4 max-w-xl text-lg">
+              See how our Compression Shirts look on you before buying. Upload a photo and experience the future of online shopping.
             </p>
           </div>
         </section>
@@ -246,7 +247,7 @@ const VirtualTryOnPage = () => {
                   disabled={!selectedImagePreview || !selectedProduct || isProcessing}
                   onClick={handleTryOn}
                 >
-                  {isProcessing ? 'Processing...' : 'Try On Selected Tee'}
+                  {isProcessing ? 'Processing...' : 'Try On Selected Shirt'}
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
@@ -275,7 +276,7 @@ const VirtualTryOnPage = () => {
                       />
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background to-transparent p-3">
                         <p className="text-sm font-medium text-foreground truncate">{product.title}</p>
-                        <p className="text-xs text-muted-foreground">${Number(product.price).toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground">Rs. {Number(product.price).toFixed(2)}</p>
                       </div>
                       {selectedProduct?.id === product.id && (
                         <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
@@ -357,7 +358,7 @@ const VirtualTryOnPage = () => {
                         {selectedProduct.isCustomDesign ? (
                           <p className="text-primary font-medium mt-1">Custom Design</p>
                         ) : (
-                          <p className="text-primary font-medium mt-1">${Number(selectedProduct.price).toFixed(2)}</p>
+                          <p className="text-primary font-medium mt-1">Rs. {Number(selectedProduct.price).toFixed(2)}</p>
                         )}
                       </div>
                     </div>

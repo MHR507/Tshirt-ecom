@@ -3,9 +3,11 @@ import Layout from '@/components/layout/Layout';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus, X, ArrowRight, ShoppingBag } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const CartPage = () => {
   const { items, updateQuantity, removeFromCart, totalPrice } = useCart();
+  const { toast } = useToast();
 
   if (items.length === 0) {
     return (
@@ -21,7 +23,7 @@ const CartPage = () => {
               Start shopping to fill it up!
             </p>
             <Link to="/shop">
-              <Button variant="hero" className="group">
+              <Button variant="hero" className="group mt-10">
                 Shop Now
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Button>
@@ -107,7 +109,7 @@ const CartPage = () => {
 
                       {/* Price */}
                       <span className="font-display text-xl text-primary">
-                        ${item.product.price * item.quantity}
+                        Rs. {item.product.price * item.quantity}
                       </span>
                     </div>
                   </div>
@@ -123,7 +125,7 @@ const CartPage = () => {
                 <div className="space-y-4 border-b border-border pb-6 mb-6">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="text-foreground">${totalPrice}</span>
+                    <span className="text-foreground">Rs. {totalPrice}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
@@ -133,7 +135,7 @@ const CartPage = () => {
 
                 <div className="flex justify-between mb-8">
                   <span className="font-display text-xl">TOTAL</span>
-                  <span className="font-display text-xl text-primary">${totalPrice}</span>
+                  <span className="font-display text-xl text-primary">Rs. {totalPrice}</span>
                 </div>
 
                 <Link to="/checkout" className="block">
@@ -156,9 +158,24 @@ const CartPage = () => {
                     <input
                       type="text"
                       placeholder="Enter code"
+                      id="promo-code-input"
                       className="flex-1 bg-secondary border border-border px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-smooth"
                     />
-                    <Button variant="secondary">Apply</Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        const input = document.getElementById('promo-code-input') as HTMLInputElement;
+                        if (input && input.value.trim()) {
+                          toast({
+                            title: 'Invalid Code',
+                            description: 'This promo code is invalid',
+                            variant: 'destructive',
+                          });
+                        }
+                      }}
+                    >
+                      Apply
+                    </Button>
                   </div>
                 </div>
               </div>

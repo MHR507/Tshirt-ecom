@@ -44,7 +44,7 @@ const ProductDetailPage = () => {
         // Fetch related products (optional optimization: fetch only if product loaded)
         const allProductsRes = await apiService.getProducts(p.category);
         const related = (allProductsRes.products || [])
-          .filter((item: any) => String(item.id) !== String(p.id))
+          .filter((item: any) => String(item.id) !== String(p.id) && item.category !== 'custom')
           .slice(0, 4);
         setRelatedProducts(related);
 
@@ -169,10 +169,10 @@ const ProductDetailPage = () => {
 
               {/* Price */}
               <div className="flex items-center gap-4">
-                <span className="font-display text-4xl text-primary">${product.price}</span>
+                <span className="font-display text-4xl text-primary">Rs. {product.price}</span>
                 {product.originalPrice && (
                   <span className="text-xl text-muted-foreground line-through">
-                    ${product.originalPrice}
+                    Rs. {product.originalPrice}
                   </span>
                 )}
               </div>

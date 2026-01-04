@@ -171,10 +171,10 @@ export default function AdminDashboard() {
   const recentOrders = filteredOrders.slice(0, 5);
 
   const statCards = [
-    { title: 'Total Revenue', value: `$${metrics.totalRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-primary' },
+    { title: 'Total Revenue', value: `Rs. ${metrics.totalRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-primary' },
     { title: 'Total Orders', value: metrics.totalOrders, icon: ShoppingBag, color: 'text-blue-500' },
     { title: 'Pending Orders', value: metrics.pendingOrders, icon: Package, color: 'text-orange-500' },
-    { title: 'Avg Order Value', value: `$${metrics.avgOrderValue.toFixed(2)}`, icon: TrendingUp, color: 'text-green-500' },
+    { title: 'Avg Order Value', value: `Rs. ${metrics.avgOrderValue.toFixed(2)}`, icon: TrendingUp, color: 'text-green-500' },
   ];
 
   if (loading) {
@@ -312,7 +312,7 @@ export default function AdminDashboard() {
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '8px'
                       }}
-                      formatter={(value: number) => [`$${value}`, 'Revenue']}
+                      formatter={(value: number) => [`Rs. ${value}`, 'Revenue']}
                     />
                     <Area
                       type="monotone"
@@ -354,20 +354,20 @@ export default function AdminDashboard() {
                       label={({ name, value }) => `${name}: ${value}`}
                     >
                       {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                      backgroundColor: '#ffffff',
-                      color: '#111827',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
+                        backgroundColor: '#ffffff',
+                        color: '#111827',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
                       }}
                       labelStyle={{ color: '#111827' }}
                       itemStyle={{ color: '#111827' }}
                     />
-                    </PieChart>
+                  </PieChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -444,13 +444,13 @@ export default function AdminDashboard() {
                       <td className="py-3 px-4 text-sm font-mono">{order.id}</td>
                       <td className="py-3 px-4 text-sm">{order.customerName}</td>
                       <td className="py-3 px-4 text-sm">{order.productName}</td>
-                      <td className="py-3 px-4 text-sm">${order.price?.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-sm">Rs. {order.price?.toFixed(2)}</td>
                       <td className="py-3 px-4">
                         <span className={`text-xs px-2 py-1 rounded-full ${order.status === 'delivered' ? 'bg-green-500/20 text-green-500' :
-                            order.status === 'shipped' ? 'bg-blue-500/20 text-blue-500' :
-                              order.status === 'processing' ? 'bg-yellow-500/20 text-yellow-500' :
-                                order.status === 'pending' ? 'bg-orange-500/20 text-orange-500' :
-                                  'bg-red-500/20 text-red-500'
+                          order.status === 'shipped' ? 'bg-blue-500/20 text-blue-500' :
+                            order.status === 'processing' ? 'bg-yellow-500/20 text-yellow-500' :
+                              order.status === 'pending' ? 'bg-orange-500/20 text-orange-500' :
+                                'bg-red-500/20 text-red-500'
                           }`}>
                           {order.status}
                         </span>

@@ -23,4 +23,4 @@ class Config:
     R2_BUCKET = os.getenv("R2_BUCKET")
     R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
     R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
-    # R2_PUBLIC_URL = os.getenv("R2_PUBLIC_URL")
+    R2_PUBLIC_URL = os.getenv("R2_PUBLIC_URL", "https://pub-76ba2ec8e9bc49b2b9137ad41d0c2a8d.r2.dev")

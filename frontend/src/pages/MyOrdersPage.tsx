@@ -184,7 +184,7 @@ export default function MyOrdersPage() {
 
                     {/* Price & Action */}
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
-                        <p className="text-lg font-bold text-primary">${order.price?.toFixed(2)}</p>
+                        <p className="text-lg font-bold text-primary">Rs. {order.price?.toFixed(2)}</p>
                         {showViewButton && (
                             <Button
                                 variant="ghost"
@@ -349,7 +349,7 @@ export default function MyOrdersPage() {
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                                                 </div>
-                                                <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                                                <p className="font-medium">Rs. {(item.price * item.quantity).toFixed(2)}</p>
                                             </div>
                                         ))
                                     ) : (
@@ -386,8 +386,8 @@ export default function MyOrdersPage() {
                                 <div className="space-y-1">
                                     <h3 className="font-medium text-sm">Payment Status</h3>
                                     <span className={`text-xs px-2 py-1 rounded-full ${selectedOrder.paymentStatus === 'paid'
-                                            ? 'bg-green-500/20 text-green-400'
-                                            : 'bg-orange-500/20 text-orange-400'
+                                        ? 'bg-green-500/20 text-green-400'
+                                        : 'bg-orange-500/20 text-orange-400'
                                         }`}>
                                         {selectedOrder.paymentStatus}
                                     </span>
@@ -397,7 +397,7 @@ export default function MyOrdersPage() {
                             {/* Total */}
                             <div className="flex justify-between items-center pt-4 border-t border-border">
                                 <p className="font-medium">Total Amount</p>
-                                <p className="text-2xl font-bold text-primary">${selectedOrder.price?.toFixed(2)}</p>
+                                <p className="text-2xl font-bold text-primary">Rs. {selectedOrder.price?.toFixed(2)}</p>
                             </div>
 
                             {/* Actions */}

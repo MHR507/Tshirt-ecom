@@ -29,6 +29,7 @@ const CheckoutPage = () => {
     postalCode: '',
     phone: '',
     saveInfo: false,
+    wantsPackaging: true,
   });
 
   // Update email if user logs in
@@ -286,8 +287,8 @@ const CheckoutPage = () => {
                         type="button"
                         onClick={() => setPaymentMethod(option.id)}
                         className={`w-full flex items-center gap-4 p-4 border-2 rounded-lg transition-all ${paymentMethod === option.id
-                            ? `${option.borderColor} ${option.bgColor}`
-                            : 'border-border bg-secondary hover:border-muted-foreground'
+                          ? `${option.borderColor} ${option.bgColor}`
+                          : 'border-border bg-secondary hover:border-muted-foreground'
                           }`}
                       >
                         <div className={`w-12 h-12 rounded-full ${option.bgColor} flex items-center justify-center`}>
@@ -311,6 +312,39 @@ const CheckoutPage = () => {
                     <div className="bg-card border border-border p-4 rounded-lg">
                       <p className="text-sm text-muted-foreground">
                         <span className="text-primary font-medium">Note:</span> You will be redirected to {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} for secure payment processing.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Packaging Option */}
+                <div className="space-y-4">
+                  <h2 className="font-display text-xl flex items-center gap-3">
+                    <span className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center text-sm">4</span>
+                    PACKAGING (OPTIONAL)
+                  </h2>
+
+                  <label className="flex items-center gap-3 cursor-pointer p-4 bg-secondary border border-border rounded-lg">
+                    <input
+                      type="checkbox"
+                      name="wantsPackaging"
+                      checked={formData.wantsPackaging}
+                      onChange={handleInputChange}
+                      className="w-5 h-5 bg-secondary border border-border checked:bg-primary checked:border-primary accent-primary"
+                    />
+                    <span className="text-foreground">I want packaging for my order</span>
+                  </label>
+
+                  {formData.wantsPackaging ? (
+                    <div className="bg-yellow-500/10 border-2 border-yellow-500/50 p-4 rounded-lg">
+                      <p className="text-sm text-yellow-200">
+                        <span className="font-medium">📦 Note:</span> If you choose not to use packaging, the cost saved will be donated to charitable organizations.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-500/10 border-2 border-yellow-500/50 p-4 rounded-lg">
+                      <p className="text-sm text-yellow-200">
+                        <span className="font-medium">💛 Thank you!</span> The cost saved by not using packaging will be donated to charitable organizations.
                       </p>
                     </div>
                   )}
@@ -343,7 +377,7 @@ const CheckoutPage = () => {
                   ) : (
                     <>
                       <Lock className="w-4 h-4 mr-2" />
-                      {paymentMethod === 'cod' ? 'Place Order' : 'Pay Now'} • ${totalPrice}
+                      {paymentMethod === 'cod' ? 'Place Order' : 'Pay Now'} • Rs. {totalPrice}
                     </>
                   )}
                 </Button>
@@ -376,7 +410,7 @@ const CheckoutPage = () => {
                       <p className="text-xs text-muted-foreground mt-1">
                         {item.selectedSize}{item.selectedColor && ` / ${item.selectedColor}`}
                       </p>
-                      <p className="text-sm text-primary mt-2">${item.product.price * item.quantity}</p>
+                      <p className="text-sm text-primary mt-2">Rs. {item.product.price * item.quantity}</p>
                     </div>
                   </div>
                 ))}
@@ -386,7 +420,7 @@ const CheckoutPage = () => {
               <div className="border-t border-border mt-6 pt-6 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>${totalPrice}</span>
+                  <span>Rs. {totalPrice}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Shipping</span>
@@ -398,7 +432,7 @@ const CheckoutPage = () => {
                 </div>
                 <div className="flex justify-between font-display text-xl pt-3 border-t border-border">
                   <span>TOTAL</span>
-                  <span className="text-primary">${totalPrice}</span>
+                  <span className="text-primary">Rs. {totalPrice}</span>
                 </div>
               </div>
 

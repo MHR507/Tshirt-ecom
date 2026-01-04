@@ -25,7 +25,7 @@ const AboutPage = () => {
   const values = [
     {
       title: 'Quality First',
-      description: 'Every tee is crafted from 100% premium cotton, garment-dyed for lasting comfort and color.',
+      description: 'Every shirt is crafted from the finest quality materials, ensuring durability and comfort.',
     },
     {
       title: 'Sustainable Future',
@@ -74,7 +74,7 @@ const AboutPage = () => {
                 </h2>
                 <div className="space-y-6 text-muted-foreground leading-relaxed">
                   <p>
-                    ValorFit was founded in 2020, in a fitness community in Los Angeles.
+                    ValorFit was founded in 2025, in a fitness community in Rawalpindi, Pakistan.
                     What started as a passion project between athletes who believed that
                     gym wear could be something more — a statement of dedication,
                     a symbol of your commitment to excellence.
@@ -135,7 +135,7 @@ const AboutPage = () => {
         </section>
 
         {/* Team */}
-        <section className="py-24">
+        {/* <section className="py-24">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <span className="text-primary uppercase tracking-[0.3em] text-sm font-medium">
@@ -160,7 +160,7 @@ const AboutPage = () => {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* CTA */}
         <section className="py-24 bg-card">

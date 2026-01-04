@@ -482,7 +482,7 @@ export default function CustomDesignPage() {
                             <Card className="bg-card border-border">
                                 <CardContent className="p-4">
                                     <h3 className="font-medium mb-3">Shirt Style</h3>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-2 gap-2">
                                         {SHIRT_STYLES.map((style) => (
                                             <Button
                                                 key={style.id}
@@ -561,7 +561,7 @@ export default function CustomDesignPage() {
                                 <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
                                     <CardContent className="p-4 text-center">
                                         <p className="text-sm text-muted-foreground">Custom Compression Shirt Price</p>
-                                        <p className="text-3xl font-bold text-primary">${baseProduct.price}</p>
+                                        <p className="text-3xl font-bold text-primary">Rs. {baseProduct.price}</p>
                                     </CardContent>
                                 </Card>
                             )}

@@ -89,7 +89,7 @@ export default function DesignerWallet() {
     }
 
     if (amount < 10) {
-      toast.error('Minimum withdrawal is $10.00');
+      toast.error('Minimum withdrawal is Rs. 10.00');
       return;
     }
 
@@ -106,7 +106,7 @@ export default function DesignerWallet() {
       });
 
       if (response.ok) {
-        toast.success(`Withdrawal of $${amount.toFixed(2)} initiated`);
+        toast.success(`Withdrawal of Rs. ${amount.toFixed(2)} initiated`);
         setShowWithdrawDialog(false);
         setWithdrawAmount('');
         // Refresh wallet data
@@ -167,7 +167,7 @@ export default function DesignerWallet() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Available Balance</p>
-                <p className="text-3xl font-bold text-primary">${walletData.walletBalance.toFixed(2)}</p>
+                <p className="text-3xl font-bold text-primary">Rs. {walletData.walletBalance.toFixed(2)}</p>
               </div>
               <div className="p-3 bg-primary/20 rounded-full">
                 <Wallet className="h-8 w-8 text-primary" />
@@ -187,7 +187,7 @@ export default function DesignerWallet() {
                   <div>
                     <Label htmlFor="amount">Amount</Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">Rs.</span>
                       <Input
                         id="amount"
                         type="number"
@@ -201,7 +201,7 @@ export default function DesignerWallet() {
                       />
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Available: ${walletData.walletBalance.toFixed(2)} • Min: $10.00
+                      Available: Rs. {walletData.walletBalance.toFixed(2)} • Min: Rs. 10.00
                     </p>
                   </div>
                   <div>
@@ -240,7 +240,7 @@ export default function DesignerWallet() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Earnings</p>
-                <p className="text-3xl font-bold text-green-500">${totalEarnings.toFixed(2)}</p>
+                <p className="text-3xl font-bold text-green-500">Rs. {totalEarnings.toFixed(2)}</p>
               </div>
               <div className="p-3 bg-green-500/20 rounded-full">
                 <DollarSign className="h-8 w-8 text-green-500" />
@@ -255,7 +255,7 @@ export default function DesignerWallet() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Pending Earnings</p>
-                <p className="text-3xl font-bold text-yellow-500">${pendingEarnings.toFixed(2)}</p>
+                <p className="text-3xl font-bold text-yellow-500">Rs. {pendingEarnings.toFixed(2)}</p>
               </div>
               <div className="p-3 bg-yellow-500/20 rounded-full">
                 <Clock className="h-8 w-8 text-yellow-500" />
@@ -311,7 +311,7 @@ export default function DesignerWallet() {
                   </div>
                   <div className="text-right">
                     <p className={`font-bold ${getTransactionColor(transaction.type)}`}>
-                      {transaction.type === 'withdrawal' ? '-' : '+'}${Math.abs(transaction.amount).toFixed(2)}
+                      {transaction.type === 'withdrawal' ? '-' : '+'}Rs. {Math.abs(transaction.amount).toFixed(2)}
                     </p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${transaction.status === 'completed' ? 'bg-green-500/20 text-green-500' :
                       transaction.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :

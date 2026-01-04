@@ -228,7 +228,7 @@ export default function AdminOrders() {
         <Card className="bg-card border-border">
           <CardContent className="pt-4">
             <p className="text-sm text-muted-foreground">Total Revenue</p>
-            <p className="text-2xl font-bold text-primary">${summary.total.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-primary">Rs. {summary.total.toFixed(2)}</p>
           </CardContent>
         </Card>
         <Card className="bg-orange-500/10 border-orange-500/30">
@@ -391,7 +391,7 @@ export default function AdminOrders() {
                           <span className="text-xs text-muted-foreground">+{order.quantity - 1} more</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-sm font-medium">${order.price?.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-sm font-medium">Rs. {order.price?.toFixed(2)}</td>
                       <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell">{order.date}</td>
                       <td className="py-3 px-4">
                         <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(order.status)}`}>
@@ -500,8 +500,8 @@ export default function AdminOrders() {
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Payment Status</p>
                   <span className={`text-xs px-2 py-1 rounded-full ${selectedOrder.paymentStatus === 'paid'
-                      ? 'bg-green-500/20 text-green-500'
-                      : 'bg-orange-500/20 text-orange-500'
+                    ? 'bg-green-500/20 text-green-500'
+                    : 'bg-orange-500/20 text-orange-500'
                     }`}>
                     {selectedOrder.paymentStatus}
                   </span>
@@ -526,7 +526,7 @@ export default function AdminOrders() {
                             {` • Qty: ${item.quantity}`}
                           </p>
                         </div>
-                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-medium">Rs. {(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     ))
                   ) : (
@@ -541,7 +541,7 @@ export default function AdminOrders() {
               {/* Total */}
               <div className="flex justify-between items-center pt-4 border-t border-border">
                 <p className="font-medium text-lg">Total Amount</p>
-                <p className="font-bold text-2xl text-primary">${selectedOrder.price?.toFixed(2)}</p>
+                <p className="font-bold text-2xl text-primary">Rs. {selectedOrder.price?.toFixed(2)}</p>
               </div>
 
               {/* Quick Actions */}

@@ -183,7 +183,7 @@ export default function DesignerDesigns() {
                 />
               </div>
               <div>
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">Price (Rs.)</Label>
                 <Input
                   id="price"
                   type="number"
@@ -195,7 +195,7 @@ export default function DesignerDesigns() {
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   required
                 />
-                <p className="text-xs text-muted-foreground mt-1">Minimum $10.00. This will be the selling price.</p>
+                <p className="text-xs text-muted-foreground mt-1">Minimum Rs. 10.00. This will be the selling price.</p>
               </div>
               <div>
                 <Label htmlFor="tags">Tags (comma separated)</Label>
@@ -342,7 +342,7 @@ export default function DesignerDesigns() {
               <CardContent className="p-4">
                 <div className="flex justify-between items-start">
                   <h3 className="font-medium">{design.name}</h3>
-                  <span className="text-primary font-bold">${design.price?.toFixed(2) || '29.99'}</span>
+                  <span className="text-primary font-bold">Rs. {design.price?.toFixed(2) || '29.99'}</span>
                 </div>
                 {design.uploadDate && (
                   <p className="text-xs text-muted-foreground">Uploaded: {design.uploadDate}</p>
@@ -356,7 +356,7 @@ export default function DesignerDesigns() {
                     </div>
                     <div className="flex justify-between text-sm mt-1">
                       <span className="text-muted-foreground">Your Earnings (5%)</span>
-                      <span className="font-medium text-accent">${((design.sales * design.price || 0) * 0.05).toFixed(2)}</span>
+                      <span className="font-medium text-accent">Rs. {((design.sales * design.price || 0) * 0.05).toFixed(2)}</span>
                     </div>
                   </div>
                 )}

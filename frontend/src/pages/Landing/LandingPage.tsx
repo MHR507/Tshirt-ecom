@@ -7,30 +7,30 @@ import { getToken, logout } from "../../services/authService";
 const SAMPLE_PRODUCTS: Product[] = [
 	{
 		id: "p1",
-		title: "Mono Logo Tee",
-		price: "$34",
-		image: "/assets/products/tee-1.jpg",
+		title: "Mono Logo Shirt",
+		price: "Rs. 34",
+		image: "/assets/products/Shirt-1.jpg",
 		tags: ["Minimal", "Unisex"],
 	},
 	{
 		id: "p2",
-		title: "Vintage Script Tee",
-		price: "$39",
-		image: "/assets/products/tee-2.jpg",
+		title: "Vintage Script Shirt",
+		price: "Rs. 39",
+		image: "/assets/products/Shirt-2.jpg",
 		tags: ["Vintage", "Soft Cotton"],
 	},
 	{
 		id: "p3",
-		title: "Abstract Print Tee",
-		price: "$42",
-		image: "/assets/products/tee-3.jpg",
+		title: "Abstract Print Shirt",
+		price: "Rs. 42",
+		image: "/assets/products/Shirt-3.jpg",
 		tags: ["Art", "Limited"],
 	},
 	{
 		id: "p4",
-		title: "Signature Pocket Tee",
-		price: "$36",
-		image: "/assets/products/tee-4.jpg",
+		title: "Signature Pocket Shirt",
+		price: "Rs. 36",
+		image: "/assets/products/Shirt-4.jpg",
 		tags: ["Classic", "Fit"],
 	},
 ];
@@ -153,7 +153,7 @@ export default function LandingPage() {
 						<div className="w-full aspect-[3/4] rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
 							<img
 								src="/assets/hero/valorfit2.png"
-								alt="Hero tee"
+								alt="Hero Shirt"
 								className="object-cover w-full h-full"
 							/>
 						</div>

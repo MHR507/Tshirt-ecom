@@ -41,7 +41,7 @@ const Header = () => {
       { name: 'Shop All', href: '/shop' },
       { name: 'Designer', href: '/shop?category=designer' },
       { name: 'Design Your Own', href: '/custom-design' },
-      { name: 'Virtual Try-On', href: '/virtual-try-on' },
+      { name: 'AR Preview', href: '/virtual-try-on' },
       { name: 'About', href: '/about' },
     ];
   };
@@ -57,10 +57,14 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to={isAdmin ? '/admin' : isDesigner ? '/designer' : '/'} className="font-display text-2xl tracking-wider text-foreground hover:text-primary transition-smooth">
-          VALOR<span className="text-primary">FIT</span>
-          {isAdmin && <span className="text-xs text-muted-foreground ml-2 uppercase tracking-wider">Admin</span>}
-          {isDesigner && !isAdmin && <span className="text-xs text-muted-foreground ml-2 uppercase tracking-wider">Designer</span>}
+        <Link to={isAdmin ? '/admin' : isDesigner ? '/designer' : '/'} className="flex items-center gap-2 hover:opacity-80 transition-smooth">
+          <img
+            src="/assets/shirts/valorfit-transaparent-logo-white.png"
+            alt="ValorFit"
+            className="h-12 w-auto"
+          />
+          {isAdmin && <span className="text-xs text-muted-foreground uppercase tracking-wider">Admin</span>}
+          {isDesigner && !isAdmin && <span className="text-xs text-muted-foreground uppercase tracking-wider">Designer</span>}
         </Link>
 
         {/* Desktop Navigation */}

@@ -5,15 +5,15 @@ const CategorySection = () => {
   const categories = [
     {
       name: 'Classic Collection',
-      description: 'Timeless essentials for everyday wear',
-      image: '/assets/white-compression-shirt.jpeg',
+      description: '',
+      image: '/assets/classic-collection.webp',
       href: '/shop?category=normal',
       count: '',
     },
     {
       name: 'Designer Series',
-      description: 'Limited editions by world-class artists',
-      image: '/assets/sweat.jpeg',
+      description: '',
+      image: '/assets/designer-collection.webp',
       href: '/shop?category=designer',
       count: '',
     },

@@ -65,10 +65,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-foreground font-medium">${product.price}</span>
+          <span className="text-foreground font-medium">Rs. {product.price}</span>
           {product.originalPrice && (
             <span className="text-muted-foreground line-through text-sm">
-              ${product.originalPrice}
+              Rs. {product.originalPrice}
             </span>
           )}
         </div>

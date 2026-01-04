@@ -145,7 +145,7 @@ export default function DesignerProductsPage() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-muted-foreground mb-1 block">Price ($)</label>
+            <label className="text-sm font-medium text-muted-foreground mb-1 block">Price (Rs.)</label>
             <input
               className="w-full border px-3 py-2 rounded-lg bg-background"
               placeholder="49.00"
@@ -275,7 +275,7 @@ export default function DesignerProductsPage() {
               </div>
               <div className="p-4">
                 <h3 className="font-semibold">{(p as any).name || p.title}</h3>
-                <p className="text-muted-foreground">${Number(p.price).toFixed(2)}</p>
+                <p className="text-muted-foreground">Rs. {Number(p.price).toFixed(2)}</p>
                 <button
                   onClick={() => handleDelete(p.id)}
                   className="mt-3 text-sm text-red-500 hover:text-red-600 transition-colors flex items-center gap-1"

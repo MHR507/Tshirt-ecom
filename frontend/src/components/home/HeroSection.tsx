@@ -46,7 +46,7 @@ const HeroSection = () => {
               </Link>
               <Link to="/virtual-try-on">
                 <Button variant="hero-outline">
-                  Try On Virtually
+                  AR Preview
                 </Button>
               </Link>
             </div>
