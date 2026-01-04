@@ -3,30 +3,39 @@ import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, Palette, Trash2, Edit, ShoppingCart, Loader2, Plus } from 'lucide-react';
+import { Search, Palette, Trash2, Eye, ShoppingCart, Loader2, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import apiService from '@/services/apiService';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface CustomDesign {
     id: number;
     name: string;
     previewFront?: string;
     previewBack?: string;
+    shirtStyle?: string;
     createdAt: string;
     baseProductId?: number;
 }
 
+// Default shirt image to show when no preview is available
+const DEFAULT_SHIRT_IMAGE = '/assets/shirts/half-sleeve-front.png';
+
 export default function MyCustomDesigns() {
     const navigate = useNavigate();
     const { addToCart } = useCart();
+    const { isAuthenticated } = useAuth();
     const [designs, setDesigns] = useState<CustomDesign[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [viewDialogOpen, setViewDialogOpen] = useState(false);
     const [designToDelete, setDesignToDelete] = useState<CustomDesign | null>(null);
+    const [designToView, setDesignToView] = useState<CustomDesign | null>(null);
+    const [viewSide, setViewSide] = useState<'front' | 'back'>('front');
     const [deleting, setDeleting] = useState(false);
     const [baseProduct, setBaseProduct] = useState<any>(null);
 
@@ -83,7 +92,7 @@ export default function MyCustomDesigns() {
             id: String(baseProduct.id),
             name: `Custom Compression Shirt - ${design.name}`,
             price: baseProduct.price,
-            image: design.previewFront || baseProduct.image,
+            image: design.previewFront || DEFAULT_SHIRT_IMAGE,
             customDesignId: design.id,
         };
 
@@ -91,6 +100,20 @@ export default function MyCustomDesigns() {
 
         toast({ title: 'Added to Cart', description: 'Your custom design has been added to cart' });
         navigate('/cart');
+    };
+
+    const handleViewDesign = (design: CustomDesign) => {
+        setDesignToView(design);
+        setViewDialogOpen(true);
+    };
+
+    const getShirtImage = (design: CustomDesign) => {
+        // Return the saved preview image if available (base64)
+        if (design.previewFront) {
+            return design.previewFront;
+        }
+        // Fallback to default shirt image
+        return DEFAULT_SHIRT_IMAGE;
     };
 
     const filteredDesigns = designs.filter(d =>
@@ -156,21 +179,20 @@ export default function MyCustomDesigns() {
                         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {filteredDesigns.map((design) => (
                                 <Card key={design.id} className="bg-card border-border overflow-hidden group">
-                                    <div className="aspect-square bg-white relative">
-                                        {design.previewFront ? (
-                                            <img
-                                                src={design.previewFront}
-                                                alt={design.name}
-                                                className="w-full h-full object-contain"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
-                                                <Palette className="h-16 w-16 text-primary/50" />
-                                            </div>
-                                        )}
+                                    <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-50 relative flex items-center justify-center">
+                                        <img
+                                            src={getShirtImage(design)}
+                                            alt={design.name}
+                                            className="w-4/5 h-4/5 object-contain"
+                                        />
                                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                            <Button size="icon" variant="secondary" title="Edit">
-                                                <Edit className="h-4 w-4" />
+                                            <Button
+                                                size="icon"
+                                                variant="secondary"
+                                                onClick={() => handleViewDesign(design)}
+                                                title="View Design"
+                                            >
+                                                <Eye className="h-4 w-4" />
                                             </Button>
                                             <Button
                                                 size="icon"
@@ -206,6 +228,70 @@ export default function MyCustomDesigns() {
                     )}
                 </div>
             </div>
+
+            {/* View Design Dialog */}
+            <Dialog open={viewDialogOpen} onOpenChange={(open) => {
+                setViewDialogOpen(open);
+                if (!open) setViewSide('front');
+            }}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>{designToView?.name}</DialogTitle>
+                    </DialogHeader>
+
+                    {/* Front/Back Toggle */}
+                    <div className="flex justify-center gap-2 mb-4">
+                        <Button
+                            variant={viewSide === 'front' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setViewSide('front')}
+                        >
+                            Front
+                        </Button>
+                        <Button
+                            variant={viewSide === 'back' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setViewSide('back')}
+                        >
+                            Back
+                        </Button>
+                    </div>
+
+                    <div className="flex justify-center py-4">
+                        <div className="bg-gradient-to-br from-gray-100 to-gray-50 rounded-lg p-4 w-full max-w-md aspect-[3/4] flex items-center justify-center">
+                            <img
+                                src={
+                                    designToView
+                                        ? (viewSide === 'front'
+                                            ? (designToView.previewFront || DEFAULT_SHIRT_IMAGE)
+                                            : (designToView.previewBack || DEFAULT_SHIRT_IMAGE.replace('-front', '-back')))
+                                        : DEFAULT_SHIRT_IMAGE
+                                }
+                                alt={`${designToView?.name || 'Design'} - ${viewSide}`}
+                                className="w-full h-full object-contain"
+                            />
+                        </div>
+                    </div>
+
+                    <p className="text-sm text-muted-foreground text-center">
+                        Created: {designToView?.createdAt}
+                    </p>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
+                            Close
+                        </Button>
+                        <Button onClick={() => {
+                            if (designToView) {
+                                handleAddToCart(designToView);
+                                setViewDialogOpen(false);
+                            }
+                        }}>
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            Add to Cart
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

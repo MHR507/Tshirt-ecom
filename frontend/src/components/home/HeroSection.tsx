@@ -52,7 +52,7 @@ const HeroSection = () => {
             </div>
 
             {/* Stats */}
-            <div className="flex gap-12 pt-8 border-t border-border/50">
+            {/* <div className="flex gap-12 pt-8 border-t border-border/50">
               <div>
                 <div className="font-display text-3xl text-primary">50+</div>
                 <div className="text-sm text-muted-foreground">Unique Designs</div>
@@ -65,7 +65,7 @@ const HeroSection = () => {
                 <div className="font-display text-3xl text-primary">100%</div>
                 <div className="text-sm text-muted-foreground">Premium Cotton</div>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Hero Image */}

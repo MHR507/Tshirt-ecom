@@ -124,12 +124,12 @@ const ShopPage = () => {
               Collection
             </span>
             <h1 className="font-display text-6xl md:text-8xl mt-4">
-              {category === 'designer' ? 'DESIGNER SERIES' : 'CLASSIC COLLECTION'}
+              {category === 'designer' ? 'DESIGNER SERIES' : 'ALL PRODUCTS'}
             </h1>
             <p className="text-muted-foreground mt-4 max-w-lg">
               {category === 'designer'
-                ? 'Limited edition pieces crafted by world-renowned designers.'
-                : 'Timeless essentials made from premium materials.'}
+                ? 'Designs submitted by our community of designers.'
+                : ''}
             </p>
           </div>
         </section>

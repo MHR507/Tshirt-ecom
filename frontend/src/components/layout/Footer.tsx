@@ -33,7 +33,7 @@ const Footer = () => {
                 All Compression Shirts
               </Link>
               <Link to="/shop?category=normal" className="block text-sm text-muted-foreground hover:text-foreground transition-smooth">
-                Classic Collection
+                All Products
               </Link>
               <Link to="/shop?category=designer" className="block text-sm text-muted-foreground hover:text-foreground transition-smooth">
                 Designer Series

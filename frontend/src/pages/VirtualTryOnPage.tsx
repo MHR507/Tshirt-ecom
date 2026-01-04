@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import { Upload, Camera, ChevronRight, RefreshCw, Download, Sparkles } from 'lucide-react';
+import { Upload, Camera, ChevronRight, RefreshCw, Download, Sparkles, Palette } from 'lucide-react';
 import { generateTryOn } from '@/services/tryonService';
 import apiService from '@/services/apiService';
+import { useAuth } from '@/context/AuthContext';
+import { Link } from 'react-router-dom';
 
 // Define Interface matching what we use in Component
 interface TryOnProduct {
@@ -11,39 +13,62 @@ interface TryOnProduct {
   title: string;
   price: string | number;
   image_url: string;
+  isCustomDesign?: boolean;
+}
+
+interface CustomDesign {
+  id: number;
+  name: string;
+  previewFront?: string;
+  previewBack?: string;
 }
 
 const VirtualTryOnPage = () => {
+  const { isAuthenticated } = useAuth();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<TryOnProduct | null>(null);
   const [products, setProducts] = useState<TryOnProduct[]>([]);
+  const [customDesigns, setCustomDesigns] = useState<CustomDesign[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function load() {
-      try {
-        const response = await apiService.getProducts();
-        // Map backend product to TryOnProduct interface
-        const mappedProducts = (response.products || []).map((p: any) => ({
-          id: String(p.id),
-          title: p.name,
-          price: p.price,
-          image_url: p.image // Backend returns 'image', component uses 'image_url'
-        }));
-
-        setProducts(mappedProducts);
-        if (mappedProducts.length > 0) setSelectedProduct(mappedProducts[0]);
-      } catch (e) {
-        console.error(e);
-        setError("Failed to load products");
-      }
+    loadProducts();
+    if (isAuthenticated) {
+      loadCustomDesigns();
     }
-    load();
-  }, []);
+  }, [isAuthenticated]);
+
+  const loadProducts = async () => {
+    try {
+      const response = await apiService.getProducts();
+      // Map backend product to TryOnProduct interface
+      const mappedProducts = (response.products || []).map((p: any) => ({
+        id: String(p.id),
+        title: p.name,
+        price: p.price,
+        image_url: p.image // Backend returns 'image', component uses 'image_url'
+      }));
+
+      setProducts(mappedProducts);
+      if (mappedProducts.length > 0) setSelectedProduct(mappedProducts[0]);
+    } catch (e) {
+      console.error(e);
+      setError("Failed to load products");
+    }
+  };
+
+  const loadCustomDesigns = async () => {
+    try {
+      const response = await apiService.getCustomDesigns();
+      setCustomDesigns(response.designs || []);
+    } catch (e) {
+      console.error('Failed to load custom designs:', e);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,6 +115,17 @@ const VirtualTryOnPage = () => {
     setShowResult(false);
     setResultImage(null);
     setError(null);
+  };
+
+  const selectCustomDesign = (design: CustomDesign) => {
+    setSelectedProduct({
+      id: `custom-${design.id}`,
+      title: design.name,
+      price: 0,
+      image_url: design.previewFront || '/assets/shirts/half-sleeve-front.png',
+      isCustomDesign: true
+    });
+    setShowResult(false);
   };
 
   return (
@@ -219,7 +255,7 @@ const VirtualTryOnPage = () => {
               <div className="space-y-6">
                 <h2 className="font-display text-3xl">2. SELECT A COMPRESSION SHIRT</h2>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2">
                   {products.map((product) => (
                     <button
                       key={product.id}
@@ -252,6 +288,61 @@ const VirtualTryOnPage = () => {
                   ))}
                 </div>
 
+                {/* Custom Designs Section */}
+                {isAuthenticated && (
+                  <div className="mt-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-display text-2xl flex items-center gap-2">
+                        <Palette className="w-5 h-5 text-primary" />
+                        YOUR CUSTOM DESIGNS
+                      </h3>
+                      <Link to="/custom-design">
+                        <Button variant="outline" size="sm">Create New</Button>
+                      </Link>
+                    </div>
+
+                    {customDesigns.length === 0 ? (
+                      <div className="bg-card border border-border p-6 text-center">
+                        <Palette className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                        <p className="text-muted-foreground text-sm">You haven't created any custom designs yet.</p>
+                        <Link to="/custom-design">
+                          <Button variant="link" className="mt-2">Create Your First Design</Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[300px] overflow-y-auto pr-2">
+                        {customDesigns.map((design) => (
+                          <button
+                            key={design.id}
+                            onClick={() => selectCustomDesign(design)}
+                            className={`relative aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-50 overflow-hidden transition-all duration-300 ${selectedProduct?.id === `custom-${design.id}`
+                              ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                              : 'hover:ring-1 hover:ring-border'
+                              }`}
+                          >
+                            <img
+                              src={design.previewFront || '/assets/shirts/half-sleeve-front.png'}
+                              alt={design.name}
+                              className="w-full h-full object-contain p-2"
+                            />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background to-transparent p-3">
+                              <p className="text-sm font-medium text-foreground truncate">{design.name}</p>
+                              <p className="text-xs text-primary">Custom Design</p>
+                            </div>
+                            {selectedProduct?.id === `custom-${design.id}` && (
+                              <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                                <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Selected Product Info */}
                 {selectedProduct && (
                   <div className="bg-card p-6 border border-border">
@@ -263,7 +354,11 @@ const VirtualTryOnPage = () => {
                       />
                       <div className="flex-1">
                         <h3 className="font-display text-xl">{selectedProduct.title}</h3>
-                        <p className="text-primary font-medium mt-1">${Number(selectedProduct.price).toFixed(2)}</p>
+                        {selectedProduct.isCustomDesign ? (
+                          <p className="text-primary font-medium mt-1">Custom Design</p>
+                        ) : (
+                          <p className="text-primary font-medium mt-1">${Number(selectedProduct.price).toFixed(2)}</p>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -17,7 +17,7 @@ const VirtualTryOnBanner = () => {
           <div className="space-y-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary uppercase tracking-wider">New Feature</span>
+              <span className="text-sm text-primary uppercase tracking-wider">Augmented Reality</span>
             </div>
 
             <h2 className="font-display text-5xl md:text-7xl">
@@ -27,7 +27,7 @@ const VirtualTryOnBanner = () => {
             </h2>
 
             <p className="text-muted-foreground text-lg max-w-md leading-relaxed">
-              See how our tees look on you before buying.
+              See how our tees look on you before buying using the Power of Augmented Reality.
               Upload your photo and experience the future of online shopping.
             </p>
 
@@ -54,7 +54,7 @@ const VirtualTryOnBanner = () => {
             </div>
 
             <Link to="/virtual-try-on">
-              <Button variant="hero" className="animate-pulse-glow">
+              <Button variant="hero" className="animate-pulse-glow mt-8">
                 Try It Now
               </Button>
             </Link>

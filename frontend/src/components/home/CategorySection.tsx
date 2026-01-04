@@ -8,14 +8,14 @@ const CategorySection = () => {
       description: 'Timeless essentials for everyday wear',
       image: '/assets/white-compression-shirt.jpeg',
       href: '/shop?category=normal',
-      count: '24 Styles',
+      count: '',
     },
     {
       name: 'Designer Series',
       description: 'Limited editions by world-class artists',
       image: '/assets/sweat.jpeg',
       href: '/shop?category=designer',
-      count: '12 Exclusives',
+      count: '',
     },
   ];
 

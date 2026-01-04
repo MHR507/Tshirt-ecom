@@ -17,7 +17,7 @@ const CartPage = () => {
             </div>
             <h1 className="font-display text-4xl">YOUR CART IS EMPTY</h1>
             <p className="text-muted-foreground max-w-md">
-              Looks like you haven't added anything to your cart yet. 
+              Looks like you haven't added anything to your cart yet.
               Start shopping to fill it up!
             </p>
             <Link to="/shop">
@@ -43,7 +43,7 @@ const CartPage = () => {
             <div className="lg:col-span-2 space-y-6">
               {items.map((item) => (
                 <div
-                  key={`${item.product.id}-${item.selectedSize}-${item.selectedColor}`}
+                  key={`${item.product.id}-${item.selectedSize}-${item.selectedColor}-${item.product.customDesignId || 'no-design'}`}
                   className="flex gap-6 bg-card p-6 border border-border group"
                 >
                   {/* Image */}
@@ -74,7 +74,7 @@ const CartPage = () => {
                           )}
                         </div>
                         <button
-                          onClick={() => removeFromCart(item.product.id, item.selectedSize, item.selectedColor)}
+                          onClick={() => removeFromCart(item.product.id, item.selectedSize, item.selectedColor, item.product.customDesignId)}
                           className="text-muted-foreground hover:text-destructive transition-smooth"
                         >
                           <X className="w-5 h-5" />
@@ -91,14 +91,14 @@ const CartPage = () => {
                       {/* Quantity */}
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity - 1, item.product.customDesignId)}
                           className="w-8 h-8 bg-secondary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-smooth"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
                         <span className="font-medium w-8 text-center">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.product.id, item.selectedSize, item.selectedColor, item.quantity + 1, item.product.customDesignId)}
                           className="w-8 h-8 bg-secondary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-smooth"
                         >
                           <Plus className="w-4 h-4" />

@@ -22,10 +22,10 @@ def image_to_base64(image_data: bytes) -> str:
     """Convert image bytes to base64 string."""
     return base64.b64encode(image_data).decode("utf-8")
 
-def generate_tryon(user_photo: bytes, product_image: bytes, product_name: str) -> bytes:
+def generate_tryon(user_photo: bytes, product_image: bytes, product_name: str) -> dict:
     """
     Use FASHN Virtual Try-On v1.6 API to generate realistic try-on image.
-    Returns resulting image as bytes (PNG format).
+    Returns dict with 'cdn_url' (the FASHN CDN URL) and optionally 'image_data' (bytes).
     """
     try:
         # Convert bytes to base64 with proper prefix
@@ -92,15 +92,14 @@ def generate_tryon(user_photo: bytes, product_image: bytes, product_name: str) -
                 if not output or len(output) == 0:
                     raise Exception("No output image URL returned")
                 
-                # Download the result image
-                image_url = output[0]
-                print(f"Downloading result from: {image_url}")
+                # Return the CDN URL directly (for deployment)
+                cdn_url = output[0]
+                print(f"Try-on completed. CDN URL: {cdn_url}")
                 
-                image_response = requests.get(image_url)
-                if image_response.status_code != 200:
-                    raise Exception(f"Failed to download result image: {image_response.status_code}")
-                
-                return image_response.content
+                return {
+                    'cdn_url': cdn_url,
+                    'image_data': None  # We won't download by default
+                }
             
             elif status == "failed":
                 error = status_result.get("error", "Unknown error")
@@ -114,6 +113,13 @@ def generate_tryon(user_photo: bytes, product_image: bytes, product_name: str) -
         print(f"ERROR in generate_tryon: {str(e)}")
         traceback.print_exc()
         raise Exception(f"FASHN try-on failed: {str(e)}")
+
+def download_tryon_image(cdn_url: str) -> bytes:
+    """Download try-on image from CDN URL."""
+    response = requests.get(cdn_url)
+    if response.status_code != 200:
+        raise Exception(f"Failed to download result image: {response.status_code}")
+    return response.content
 
 def save_tryon_image(image_data: bytes, filename: str) -> str:
     """Save try-on image to uploads folder."""

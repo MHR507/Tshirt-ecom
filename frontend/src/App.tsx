@@ -141,7 +141,11 @@ const AppRoutes = () => (
         <MyOrdersPage />
       </ProtectedRoute>
     } />
-    <Route path="/custom-design" element={<CustomerOnlyRoute><CustomDesignPage /></CustomerOnlyRoute>} />
+    <Route path="/custom-design" element={
+      <ProtectedRoute allowedRoles={['customer']}>
+        <CustomDesignPage />
+      </ProtectedRoute>
+    } />
     <Route path="/my-designs" element={
       <ProtectedRoute allowedRoles={['customer']}>
         <MyCustomDesigns />

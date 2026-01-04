@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, User, Product, TryOn
-from services.tryon_service import generate_tryon, save_tryon_image
+from models import db, User, Product, TryOn, CustomDesign
+from services.tryon_service import generate_tryon
 import uuid
 import os
+import base64
 from datetime import datetime
 
 tryon_bp = Blueprint('tryon', __name__, url_prefix='/api/tryon')
@@ -15,7 +16,7 @@ def create_tryon():
     Generate AI try-on image.
     Expects multipart form data:
     - user_photo: image file (user wearing nothing/basic)
-    - product_id: product to try on
+    - product_id: product to try on (can be "custom-{id}" for custom designs)
     """
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
@@ -33,14 +34,46 @@ def create_tryon():
     if not user_photo_file.filename:
         return jsonify({'error': 'No user_photo provided'}), 400
     
-    # Get product
-    product = Product.query.get(product_id)
-    if not product:
-        return jsonify({'error': 'Product not found'}), 404
+    # Check if this is a custom design
+    is_custom_design = product_id.startswith('custom-')
+    product_image_data = None
+    product_name = "Custom Design"
+    actual_product_id = None
+    custom_design = None
     
-    try:
-        # Read files
-        user_photo_data = user_photo_file.read()
+    if is_custom_design:
+        # Extract custom design ID
+        custom_design_id = int(product_id.replace('custom-', ''))
+        custom_design = CustomDesign.query.filter_by(id=custom_design_id, user_id=user_id).first()
+        
+        if not custom_design:
+            return jsonify({'error': 'Custom design not found'}), 404
+        
+        product_name = custom_design.name
+        
+        # Get the preview image from the custom design
+        if custom_design.preview_front:
+            # Preview is stored as base64 data URL
+            preview_data = custom_design.preview_front
+            if ',' in preview_data:
+                # Remove the data URL prefix (data:image/png;base64,)
+                base64_data = preview_data.split(',')[1]
+                product_image_data = base64.b64decode(base64_data)
+            else:
+                product_image_data = base64.b64decode(preview_data)
+        else:
+            return jsonify({'error': 'Custom design has no preview image'}), 400
+        
+        # Use base product ID if available
+        actual_product_id = custom_design.base_product_id
+    else:
+        # Regular product
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+        
+        product_name = product.name
+        actual_product_id = product.id
         
         # Get product image (download from URL or use local file)
         import requests
@@ -59,55 +92,78 @@ def create_tryon():
             # Direct file path
             with open(product.image, 'rb') as f:
                 product_image_data = f.read()
+    
+    try:
+        # Read user photo
+        user_photo_data = user_photo_file.read()
         
         # Generate try-on using FASHN API
-        tryon_image_data = generate_tryon(
+        result = generate_tryon(
             user_photo=user_photo_data,
             product_image=product_image_data,
-            product_name=product.name
+            product_name=product_name
         )
         
-        # Save result image
-        filename = f"tryon_{uuid.uuid4()}.jpg"
-        filepath = save_tryon_image(tryon_image_data, filename)
+        cdn_url = result['cdn_url']
         
-        # Save try-on record to database
+        # Save try-on record to database with CDN URL
         tryon_record = TryOn(
             user_id=user_id,
-            product_id=product_id,
-            image_path=filepath,
-            filename=filename
+            product_id=actual_product_id,  # Can be None for custom designs without base product
+            cdn_url=cdn_url,  # Store the CDN URL directly
+            filename=f"tryon_{uuid.uuid4()}.png"
         )
         db.session.add(tryon_record)
         db.session.commit()
         
-        return jsonify({
+        response_data = {
             'success': True,
             'tryon_id': tryon_record.id,
-            'image_url': f'/api/tryon/image/{tryon_record.id}',
-            'product': {
-                'id': product.id,
-                'name': product.name,
-                'price': product.price
+            'image_url': cdn_url,  # Return CDN URL directly instead of local path
+        }
+        
+        if is_custom_design and custom_design:
+            response_data['custom_design'] = {
+                'id': custom_design.id,
+                'name': custom_design.name
             }
-        }), 200
+        elif not is_custom_design:
+            product = Product.query.get(actual_product_id)
+            if product:
+                response_data['product'] = {
+                    'id': product.id,
+                    'name': product.name,
+                    'price': product.price
+                }
+        
+        return jsonify(response_data), 200
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @tryon_bp.route('/image/<int:tryon_id>', methods=['GET'])
 def get_tryon_image(tryon_id):
-    """Retrieve try-on image."""
+    """Retrieve try-on image. Redirects to CDN URL if available."""
+    from flask import redirect
+    
     tryon = TryOn.query.get(tryon_id)
     if not tryon:
         return jsonify({'error': 'Try-on not found'}), 404
     
-    try:
-        with open(tryon.image_path, 'rb') as f:
-            image_data = f.read()
-        return image_data, 200, {'Content-Type': 'image/jpeg'}
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    # If we have a CDN URL, redirect to it
+    if tryon.cdn_url:
+        return redirect(tryon.cdn_url)
+    
+    # Fallback to local file if available
+    if tryon.image_path and os.path.exists(tryon.image_path):
+        try:
+            with open(tryon.image_path, 'rb') as f:
+                image_data = f.read()
+            return image_data, 200, {'Content-Type': 'image/jpeg'}
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
+    return jsonify({'error': 'Image not found'}), 404
 
 @tryon_bp.route('/history', methods=['GET'])
 @jwt_required()
@@ -116,16 +172,22 @@ def get_tryons():
     user_id = get_jwt_identity()
     tryons = TryOn.query.filter_by(user_id=user_id).all()
     
-    return jsonify([{
-        'id': t.id,
-        'product': {
-            'id': t.product.id,
-            'name': t.product.name,
-            'price': t.product.price
-        },
-        'image_url': f'/api/tryon/image/{t.id}',
-        'created_at': t.created_at.isoformat()
-    } for t in tryons]), 200
+    result = []
+    for t in tryons:
+        item = {
+            'id': t.id,
+            'image_url': t.cdn_url if t.cdn_url else f'/api/tryon/image/{t.id}',
+            'created_at': t.created_at.isoformat()
+        }
+        if t.product:
+            item['product'] = {
+                'id': t.product.id,
+                'name': t.product.name,
+                'price': t.product.price
+            }
+        result.append(item)
+    
+    return jsonify(result), 200
 
 @tryon_bp.route('/<int:tryon_id>', methods=['DELETE'])
 @jwt_required()
@@ -137,8 +199,8 @@ def delete_tryon(tryon_id):
     if not tryon or tryon.user_id != user_id:
         return jsonify({'error': 'Not found or unauthorized'}), 404
     
-    # Delete file
-    if os.path.exists(tryon.image_path):
+    # Delete local file if exists
+    if tryon.image_path and os.path.exists(tryon.image_path):
         os.remove(tryon.image_path)
     
     db.session.delete(tryon)

@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
+import html2canvas from 'html2canvas';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import {
     Upload, Type, Trash2, RotateCw, ZoomIn, ZoomOut, Save, ShoppingCart,
-    Move, Loader2, Image as ImageIcon, GripVertical
+    Loader2, Image as ImageIcon
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -64,7 +65,6 @@ export default function CustomDesignPage() {
     const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
     const [elements, setElements] = useState<DesignElement[]>([]);
     const [selectedElement, setSelectedElement] = useState<string | null>(null);
-    const [movingElement, setMovingElement] = useState<string | null>(null); // Element in move mode
     const [designName, setDesignName] = useState('My Custom Design');
     const [saveDialogOpen, setSaveDialogOpen] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -88,6 +88,35 @@ export default function CustomDesignPage() {
         }
     };
 
+    // Capture canvas as PNG using html2canvas
+    const captureCanvas = async (canvasRef: React.RefObject<HTMLDivElement>): Promise<string | null> => {
+        if (!canvasRef.current) return null;
+
+        try {
+            // Temporarily deselect element to hide controls in screenshot
+            const prevSelected = selectedElement;
+            setSelectedElement(null);
+
+            // Wait for state to update
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const canvas = await html2canvas(canvasRef.current, {
+                backgroundColor: '#f8f8f8',
+                scale: 1,
+                useCORS: true,
+                allowTaint: true,
+            });
+
+            // Restore selection
+            setSelectedElement(prevSelected);
+
+            return canvas.toDataURL('image/png');
+        } catch (error) {
+            console.error('Failed to capture canvas:', error);
+            return null;
+        }
+    };
+
     const addElement = (type: DesignElement['type'], content: string, color?: string) => {
         const newElement: DesignElement = {
             id: Date.now().toString(),
@@ -103,7 +132,6 @@ export default function CustomDesignPage() {
         };
         setElements([...elements, newElement]);
         setSelectedElement(newElement.id);
-        setMovingElement(null);
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,24 +156,22 @@ export default function CustomDesignPage() {
         if (text) addElement('text', text, '#000000');
     };
 
-    const deleteSelectedElement = () => {
-        if (!selectedElement) return;
-        setElements(elements.filter(el => el.id !== selectedElement));
-        setSelectedElement(null);
-        setMovingElement(null);
+    const deleteElement = (elementId: string) => {
+        setElements(elements.filter(el => el.id !== elementId));
+        if (selectedElement === elementId) {
+            setSelectedElement(null);
+        }
     };
 
-    const rotateSelectedElement = () => {
-        if (!selectedElement) return;
+    const rotateElement = (elementId: string) => {
         setElements(elements.map(el =>
-            el.id === selectedElement ? { ...el, rotation: (el.rotation + 45) % 360 } : el
+            el.id === elementId ? { ...el, rotation: (el.rotation + 45) % 360 } : el
         ));
     };
 
-    const resizeSelectedElement = (scale: number) => {
-        if (!selectedElement) return;
+    const resizeElement = (elementId: string, scale: number) => {
         setElements(elements.map(el =>
-            el.id === selectedElement ? {
+            el.id === elementId ? {
                 ...el,
                 width: Math.max(30, el.width * scale),
                 height: Math.max(30, el.height * scale)
@@ -153,38 +179,14 @@ export default function CustomDesignPage() {
         ));
     };
 
-    // First click: select element and show controls
-    // Second click or click on move button: enable movement
-    const handleElementClick = (e: React.MouseEvent, elementId: string, side: 'front' | 'back') => {
+    const handleElementMouseDown = (e: React.MouseEvent, elementId: string, side: 'front' | 'back') => {
         e.stopPropagation();
+        e.preventDefault();
+
         setActiveSide(side);
-
-        if (selectedElement === elementId) {
-            // Second click - enable moving mode
-            setMovingElement(elementId);
-        } else {
-            // First click - just select
-            setSelectedElement(elementId);
-            setMovingElement(null);
-        }
-    };
-
-    const enableMoveMode = () => {
-        if (selectedElement) {
-            setMovingElement(selectedElement);
-        }
-    };
-
-    const handleMouseDown = (e: React.MouseEvent, elementId: string, side: 'front' | 'back') => {
-        e.stopPropagation();
-
-        // Only allow dragging if element is in move mode
-        if (movingElement !== elementId) {
-            handleElementClick(e, elementId, side);
-            return;
-        }
-
+        setSelectedElement(elementId);
         setDragging(true);
+
         const element = elements.find(el => el.id === elementId);
         const canvasRef = side === 'front' ? frontCanvasRef : backCanvasRef;
         if (element && canvasRef.current) {
@@ -197,18 +199,20 @@ export default function CustomDesignPage() {
     };
 
     const handleMouseMove = (e: React.MouseEvent, side: 'front' | 'back') => {
-        if (!dragging || !movingElement) return;
+        if (!dragging || !selectedElement) return;
+
         const canvasRef = side === 'front' ? frontCanvasRef : backCanvasRef;
         if (!canvasRef.current) return;
 
-        const element = elements.find(el => el.id === movingElement);
+        const element = elements.find(el => el.id === selectedElement);
         if (!element || element.side !== side) return;
 
         const rect = canvasRef.current.getBoundingClientRect();
         const x = Math.max(0, Math.min(rect.width - element.width, e.clientX - rect.left - dragOffset.x));
         const y = Math.max(0, Math.min(rect.height - element.height, e.clientY - rect.top - dragOffset.y));
+
         setElements(elements.map(el =>
-            el.id === movingElement ? { ...el, x, y } : el
+            el.id === selectedElement ? { ...el, x, y } : el
         ));
     };
 
@@ -216,25 +220,33 @@ export default function CustomDesignPage() {
         setDragging(false);
     };
 
-    const handleCanvasClick = (side: 'front' | 'back') => {
-        setActiveSide(side);
-        setSelectedElement(null);
-        setMovingElement(null);
+    const handleCanvasClick = (e: React.MouseEvent, side: 'front' | 'back') => {
+        // Only deselect if clicking directly on canvas, not on an element
+        if (e.target === e.currentTarget) {
+            setActiveSide(side);
+            setSelectedElement(null);
+        }
     };
 
     const handleSaveDesign = async () => {
         if (!isAuthenticated) {
             toast({ title: 'Login Required', description: 'Please login to save your design', variant: 'destructive' });
-            navigate('/auth?mode=login');
+            navigate('/auth/login');
             return;
         }
 
         setSaving(true);
         try {
+            // Capture both canvases as PNG
+            const previewFront = await captureCanvas(frontCanvasRef);
+            const previewBack = await captureCanvas(backCanvasRef);
+
             await apiService.createCustomDesign({
                 name: designName,
                 frontDesign: frontElements,
                 backDesign: backElements,
+                previewFront: previewFront || undefined,
+                previewBack: previewBack || undefined,
             });
             toast({ title: 'Success', description: 'Design saved successfully!' });
             setSaveDialogOpen(false);
@@ -251,15 +263,25 @@ export default function CustomDesignPage() {
             return;
         }
 
+        setSaving(true);
         let designId = null;
+        let previewImage = baseProduct.image;
+
         if (isAuthenticated) {
             try {
+                // Capture canvas as PNG for preview
+                const previewFront = await captureCanvas(frontCanvasRef);
+                const previewBack = await captureCanvas(backCanvasRef);
+
                 const response = await apiService.createCustomDesign({
                     name: designName,
                     frontDesign: frontElements,
                     backDesign: backElements,
+                    previewFront: previewFront || undefined,
+                    previewBack: previewBack || undefined,
                 });
                 designId = response.design.id;
+                previewImage = previewFront || baseProduct.image;
             } catch (error) {
                 console.error('Failed to save design:', error);
             }
@@ -269,19 +291,19 @@ export default function CustomDesignPage() {
             id: String(baseProduct.id),
             name: `Custom Compression Shirt (${SHIRT_STYLES.find(s => s.id === shirtStyle)?.name}) - ${designName}`,
             price: baseProduct.price,
-            image: baseProduct.image,
+            image: previewImage,
             customDesignId: designId,
             shirtStyle: shirtStyle,
         };
 
         addToCart(product, 'M', 'White', 1);
+        setSaving(false);
         toast({ title: 'Added to Cart', description: 'Your custom design has been added to cart' });
         navigate('/cart');
     };
 
     const renderElement = (element: DesignElement) => {
         const isSelected = selectedElement === element.id;
-        const isMoving = movingElement === element.id;
 
         const baseStyle: React.CSSProperties = {
             position: 'absolute',
@@ -290,7 +312,7 @@ export default function CustomDesignPage() {
             width: element.width,
             height: element.height,
             transform: `rotate(${element.rotation}deg)`,
-            cursor: isMoving ? 'grab' : 'pointer',
+            cursor: dragging && isSelected ? 'grabbing' : 'grab',
             border: isSelected ? '2px solid #3b82f6' : '2px solid transparent',
             borderRadius: '4px',
             display: 'flex',
@@ -298,84 +320,84 @@ export default function CustomDesignPage() {
             justifyContent: 'center',
             userSelect: 'none',
             zIndex: isSelected ? 10 : 1,
-            boxShadow: isMoving ? '0 4px 12px rgba(59, 130, 246, 0.4)' : 'none',
+            boxShadow: isSelected ? '0 4px 12px rgba(59, 130, 246, 0.3)' : 'none',
+            background: isSelected ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
         };
 
-        // Inline controls when selected but not moving
-        const showInlineControls = isSelected && !isMoving;
-
         return (
-            <div
-                key={element.id}
-                style={baseStyle}
-                onMouseDown={(e) => handleMouseDown(e, element.id, element.side)}
-            >
-                {element.type === 'image' ? (
-                    <img src={element.content} alt="" className="w-full h-full object-contain" draggable={false} />
-                ) : (
-                    <span style={{ color: element.color, fontWeight: 'bold', fontSize: '16px' }}>
-                        {element.content}
-                    </span>
-                )}
-
-                {/* Inline controls overlay */}
-                {showInlineControls && (
-                    <div
-                        className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex gap-1 bg-background border rounded-lg shadow-lg p-1 z-20"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={(e) => { e.stopPropagation(); enableMoveMode(); }}
-                            title="Move"
+            <div key={element.id}>
+                <div
+                    style={baseStyle}
+                    onMouseDown={(e) => handleElementMouseDown(e, element.id, element.side)}
+                >
+                    {element.type === 'image' ? (
+                        <img
+                            src={element.content}
+                            alt=""
+                            className="w-full h-full object-contain pointer-events-none"
+                            draggable={false}
+                        />
+                    ) : (
+                        <span
+                            className="pointer-events-none"
+                            style={{ color: element.color, fontWeight: 'bold', fontSize: '16px' }}
                         >
-                            <GripVertical className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={(e) => { e.stopPropagation(); rotateSelectedElement(); }}
-                            title="Rotate"
+                            {element.content}
+                        </span>
+                    )}
+                </div>
+
+                {/* Controls toolbar - shown when selected */}
+                {isSelected && (
+                    <div
+                        className="absolute flex gap-1 bg-background border rounded-lg shadow-lg p-1"
+                        style={{
+                            left: element.x,
+                            top: element.y + element.height + 8,
+                            zIndex: 100,
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            className="h-8 w-8 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                                rotateElement(element.id);
+                            }}
+                            title="Rotate 45°"
                         >
                             <RotateCw className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={(e) => { e.stopPropagation(); resizeSelectedElement(1.2); }}
-                            title="Larger"
+                        </button>
+                        <button
+                            className="h-8 w-8 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                                resizeElement(element.id, 1.2);
+                            }}
+                            title="Make Larger"
                         >
                             <ZoomIn className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={(e) => { e.stopPropagation(); resizeSelectedElement(0.8); }}
-                            title="Smaller"
+                        </button>
+                        <button
+                            className="h-8 w-8 flex items-center justify-center rounded hover:bg-muted transition-colors"
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                                resizeElement(element.id, 0.8);
+                            }}
+                            title="Make Smaller"
                         >
                             <ZoomOut className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            onClick={(e) => { e.stopPropagation(); deleteSelectedElement(); }}
+                        </button>
+                        <button
+                            className="h-8 w-8 flex items-center justify-center rounded hover:bg-destructive/10 text-destructive transition-colors"
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                                deleteElement(element.id);
+                            }}
                             title="Delete"
                         >
                             <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                )}
-
-                {/* Moving indicator */}
-                {isMoving && (
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                        Drag to move
+                        </button>
                     </div>
                 )}
             </div>
@@ -407,7 +429,7 @@ export default function CustomDesignPage() {
                     onMouseMove={(e) => handleMouseMove(e, side)}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
-                    onClick={() => handleCanvasClick(side)}
+                    onClick={(e) => handleCanvasClick(e, side)}
                 >
                     {/* Shirt PNG Image */}
                     <img
@@ -421,23 +443,21 @@ export default function CustomDesignPage() {
                     />
 
                     {/* Design Area Overlay */}
-                    <div
-                        className="absolute pointer-events-none"
-                        style={{
-                            left: '80px',
-                            top: '100px',
-                            width: '160px',
-                            height: '200px',
-                        }}
-                    >
-                        {sideElements.length === 0 && isActive && (
-                            <div className="w-full h-full border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-white/20">
-                                <span className="text-xs text-primary/50 text-center px-2">
-                                    Add your design here
-                                </span>
-                            </div>
-                        )}
-                    </div>
+                    {sideElements.length === 0 && isActive && (
+                        <div
+                            className="absolute pointer-events-none border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-white/20"
+                            style={{
+                                left: '80px',
+                                top: '100px',
+                                width: '160px',
+                                height: '200px',
+                            }}
+                        >
+                            <span className="text-xs text-primary/50 text-center px-2">
+                                Add your design here
+                            </span>
+                        </div>
+                    )}
 
                     {/* Render design elements */}
                     {sideElements.map(renderElement)}
@@ -528,10 +548,10 @@ export default function CustomDesignPage() {
                                 <CardContent className="p-4">
                                     <h3 className="font-medium mb-2 text-sm">How to Use</h3>
                                     <ul className="text-xs text-muted-foreground space-y-1">
-                                        <li>• Click element to select & show controls</li>
-                                        <li>• Click move icon or element again to drag</li>
-                                        <li>• Use controls to rotate, resize, or delete</li>
-                                        <li>• Click outside element to deselect</li>
+                                        <li>• Drag elements to move them</li>
+                                        <li>• Click element to show controls</li>
+                                        <li>• Use controls to rotate, resize, delete</li>
+                                        <li>• Click canvas to deselect</li>
                                     </ul>
                                 </CardContent>
                             </Card>
@@ -592,8 +612,13 @@ export default function CustomDesignPage() {
                                     </DialogContent>
                                 </Dialog>
 
-                                <Button onClick={handleAddToCart} className="gap-2">
-                                    <ShoppingCart className="h-4 w-4" /> Add to Cart
+                                <Button onClick={handleAddToCart} className="gap-2" disabled={saving}>
+                                    {saving ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <ShoppingCart className="h-4 w-4" />
+                                    )}
+                                    Add to Cart
                                 </Button>
                             </div>
                         </div>
