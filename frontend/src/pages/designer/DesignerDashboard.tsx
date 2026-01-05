@@ -186,7 +186,7 @@ export default function DesignerDashboard() {
             <DollarSign className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">${stats?.totalCommission?.toFixed(2) || '0.00'}</div>
+            <div className="text-3xl font-bold text-primary">Rs. {stats?.totalCommission?.toFixed(2) || '0.00'}</div>
             <p className="text-xs text-muted-foreground mt-1">5% of revenue</p>
           </CardContent>
         </Card>
@@ -212,7 +212,7 @@ export default function DesignerDashboard() {
             <Wallet className="h-5 w-5 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-amber-500">${stats?.walletBalance?.toFixed(2) || '0.00'}</div>
+            <div className="text-3xl font-bold text-amber-500">Rs. {stats?.walletBalance?.toFixed(2) || '0.00'}</div>
             <p className="text-xs text-muted-foreground mt-1">Available to withdraw</p>
           </CardContent>
         </Card>
@@ -273,9 +273,9 @@ export default function DesignerDashboard() {
                           {product.unitsSold}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-right text-sm">${product.revenue.toFixed(2)}</td>
+                      <td className="py-4 px-4 text-right text-sm">Rs. {product.revenue.toFixed(2)}</td>
                       <td className="py-4 px-4 text-right">
-                        <span className="font-semibold text-primary">${product.commission.toFixed(2)}</span>
+                        <span className="font-semibold text-primary">Rs. {product.commission.toFixed(2)}</span>
                       </td>
                     </tr>
                   ))}
@@ -284,8 +284,8 @@ export default function DesignerDashboard() {
                   <tr className="bg-muted/30">
                     <td className="py-4 px-4 font-semibold">Total</td>
                     <td className="py-4 px-4 text-center font-semibold">{stats?.totalSales || 0}</td>
-                    <td className="py-4 px-4 text-right font-semibold">${stats?.totalRevenue?.toFixed(2) || '0.00'}</td>
-                    <td className="py-4 px-4 text-right font-bold text-primary">${stats?.totalCommission?.toFixed(2) || '0.00'}</td>
+                    <td className="py-4 px-4 text-right font-semibold">Rs. {stats?.totalRevenue?.toFixed(2) || '0.00'}</td>
+                    <td className="py-4 px-4 text-right font-bold text-primary">Rs. {stats?.totalCommission?.toFixed(2) || '0.00'}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -351,8 +351,8 @@ export default function DesignerDashboard() {
                       <p className="text-xs text-muted-foreground">{design.sales} sales</p>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full ${design.status === 'approved' ? 'bg-green-500/20 text-green-500' :
-                        design.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
-                          'bg-red-500/20 text-red-500'
+                      design.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
+                        'bg-red-500/20 text-red-500'
                       }`}>
                       {design.status}
                     </span>
